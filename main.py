@@ -318,8 +318,21 @@ def main():
             else:
                 if os.environ.get("GITHUB_ACTIONS") == "true":
                     import sys
+                    import requests
                     print("\n[GITHUB ACTIONS] Sistemin fişi çekilmeden önce Güvenli Çıkış yapılıyor.")
                     print("[HAFIZA] Tüm sesler GitHub Cache kasasına kilitlenecek. Bir sonraki başlatmada buradan devam edecek.")
+                    print("[SONSUZ DÖNGÜ] Kendi kendini yeniden tetikliyor...")
+                    try:
+                        token = os.environ.get("GITHUB_TOKEN")
+                        if token:
+                            repo = "semtinazizi2/KitapDuy_Bulut"
+                            url = f"https://api.github.com/repos/{repo}/actions/workflows/audiobook.yml/dispatches"
+                            headers = {"Accept": "application/vnd.github+json", "Authorization": f"Bearer {token}", "X-GitHub-Api-Version": "2022-11-28"}
+                            data = {"ref": "main", "inputs": {"book_id": str(book_source)}}
+                            requests.post(url, headers=headers, json=data)
+                            print(" -> Yeni GitHub robotu başarıyla uyandırıldı!")
+                    except Exception as e:
+                        print(f" -> Yeniden tetikleme başarısız: {e}")
                     sys.exit(0)
                 else:
                     print(f"\n[BEKLEME] {book_source} ID'li kitap yarım kaldı (Kotalar Doldu).")
@@ -348,8 +361,21 @@ def main():
             if not success:
                 if os.environ.get("GITHUB_ACTIONS") == "true":
                     import sys
+                    import requests
                     print("\n[GITHUB ACTIONS] Sistemin fişi çekilmeden önce Güvenli Çıkış yapılıyor.")
                     print("[HAFIZA] Tüm sesler GitHub Cache kasasına kilitlenecek. Bir sonraki başlatmada buradan devam edecek.")
+                    print("[SONSUZ DÖNGÜ] Kendi kendini yeniden tetikliyor...")
+                    try:
+                        token = os.environ.get("GITHUB_TOKEN")
+                        if token:
+                            repo = "semtinazizi2/KitapDuy_Bulut"
+                            url = f"https://api.github.com/repos/{repo}/actions/workflows/audiobook.yml/dispatches"
+                            headers = {"Accept": "application/vnd.github+json", "Authorization": f"Bearer {token}", "X-GitHub-Api-Version": "2022-11-28"}
+                            data = {"ref": "main", "inputs": {"book_id": str(current_id)}}
+                            requests.post(url, headers=headers, json=data)
+                            print(" -> Yeni GitHub robotu başarıyla uyandırıldı!")
+                    except Exception as e:
+                        print(f" -> Yeniden tetikleme başarısız: {e}")
                     sys.exit(0)
                 else:
                     print(f"\n[OTONOM BEKLEME] {current_id} ID'li kitap yarım kaldı (Kotalar Doldu).")
