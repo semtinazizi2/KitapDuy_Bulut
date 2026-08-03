@@ -316,10 +316,16 @@ def main():
                 book_source = "auto" # Manuel bitti, otomatiğe geç ve döngüyü kır
                 break
             else:
-                print(f"\n[BEKLEME] {book_source} ID'li kitap yarım kaldı (Kotalar Doldu).")
-                print("Sistem, kotaların yenilenmesi için 60 dakika (3600 saniye) uykuya geçiyor...")
-                print("Süre dolduğunda kaldığı kitaptan, kaldığı bölümden aynen devam edecektir.")
-                time.sleep(3600)
+                if os.environ.get("GITHUB_ACTIONS") == "true":
+                    import sys
+                    print("\n[GITHUB ACTIONS] Sistemin fişi çekilmeden önce Güvenli Çıkış yapılıyor.")
+                    print("[HAFIZA] Tüm sesler GitHub Cache kasasına kilitlenecek. Bir sonraki başlatmada buradan devam edecek.")
+                    sys.exit(0)
+                else:
+                    print(f"\n[BEKLEME] {book_source} ID'li kitap yarım kaldı (Kotalar Doldu).")
+                    print("Sistem, kotaların yenilenmesi için 60 dakika (3600 saniye) uykuya geçiyor...")
+                    print("Süre dolduğunda kaldığı kitaptan, kaldığı bölümden aynen devam edecektir.")
+                    time.sleep(3600)
                 
             # RAM Şişmesini (Memory Leak / OOM) Önlemek İçin Çöp Toplayıcıyı Çalıştır
             import gc
@@ -340,10 +346,16 @@ def main():
             success = process_book(current_id, mode)
             
             if not success:
-                print(f"\n[OTONOM BEKLEME] {current_id} ID'li kitap yarım kaldı (Kotalar Doldu).")
-                print("Sistem, kotaların yenilenmesi için 60 dakika (3600 saniye) uykuya geçiyor...")
-                print("Süre dolduğunda kaldığı kitaptan, kaldığı bölümden aynen devam edecektir.")
-                time.sleep(3600)
+                if os.environ.get("GITHUB_ACTIONS") == "true":
+                    import sys
+                    print("\n[GITHUB ACTIONS] Sistemin fişi çekilmeden önce Güvenli Çıkış yapılıyor.")
+                    print("[HAFIZA] Tüm sesler GitHub Cache kasasına kilitlenecek. Bir sonraki başlatmada buradan devam edecek.")
+                    sys.exit(0)
+                else:
+                    print(f"\n[OTONOM BEKLEME] {current_id} ID'li kitap yarım kaldı (Kotalar Doldu).")
+                    print("Sistem, kotaların yenilenmesi için 60 dakika (3600 saniye) uykuya geçiyor...")
+                    print("Süre dolduğunda kaldığı kitaptan, kaldığı bölümden aynen devam edecektir.")
+                    time.sleep(3600)
             else:
                 print("\n[OTONOM FABRİKA] Kitap bitti! 10 saniye sonra sıradaki kitaba geçiliyor...\n")
                 current_id = None # Eski kitap bitti, yeni kitaba geçmek için sıfırla
