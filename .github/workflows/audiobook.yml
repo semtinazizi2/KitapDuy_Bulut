@@ -39,8 +39,10 @@ jobs:
             audio-cache-
 
       - name: Firebase Anahtarini Olustur
+        env:
+          FIREBASE_CREDENTIALS: ${{ secrets.FIREBASE_CREDENTIALS }}
         run: |
-          echo '${{ secrets.FIREBASE_CREDENTIALS }}' > serviceAccountKey.json
+          echo "$FIREBASE_CREDENTIALS" > serviceAccountKey.json
 
       - name: Sesli Kitap Uretimini Baslat
         env:
