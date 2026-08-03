@@ -393,31 +393,27 @@ YANITIN SADECE JSON OLMALIDIR, BAŞKA HİÇBİR AÇIKLAMA YAZMA."""
                 # KRİTİK DÜZELTME: Tüm kitabı en sonda tek seferde MP3'e çevirmek 4 saat sürdüğü için 
                 # sunucunun CPU'sunu %100'de kilitliyordu! 
                 # Bunun yerine her 5 dakikalık parçayı ÜRETİRKEN anında MP3'e çeviriyoruz.
-                # adelay=501ms|500ms -> Sol kanala 1ms gecikme (3D Binaural etki) ve başa 0.5s sessizlik.
-                # apad=pad_dur=1.5 -> Sona 1.5s sessizlik.
+                # 3D Binaural etki, EBU R128 Radyo Standardı (loudnorm), Kompresör (acompressor), ve EQ (tiz/bas)
                 cmd = [
                     ffmpeg_bin, "-y", "-i", output_path,
-                    "-af", "aformat=channel_layouts=stereo,adelay=501ms|500ms,apad=pad_dur=1.5",
-                    "-c:a", "libmp3lame", "-b:a", "64k",
+                    "-af", "aformat=channel_layouts=stereo,adelay=501ms|500ms,apad=pad_dur=1.5,loudnorm=I=-16:TP=-1.5:LRA=11,acompressor,bass=g=2,treble=g=1",
+                    "-c:a", "libmp3lame", "-b:a", "192k",
                     tmp_output
                 ]
                 
                 try:
-                    res = subprocess.run(cmd, capture_output=True, text=True, timeout=45)
+                    res = subprocess.run(cmd, capture_output=True, text=True)
                     if res.returncode == 0:
                         mp3_output_path = output_path.replace(".wav", ".mp3")
                         shutil.move(tmp_output, mp3_output_path)
                         if os.path.exists(output_path):
                             os.remove(output_path) # Ham WAV'ı sil
                         output_path = mp3_output_path
-                        print("  -> Stereo/Binaural dönüşüm tamamlandı (Kulaklıkta mekan hissi aktif). ✨")
-                        print("  -> Mastering, Stereo ve Bölüm Geçiş Sesi başarıyla tamamlandı. 🌟")
+                        print("  -> Stereo/Binaural dönüşüm, Radyo Standardı (EBU R128), Kompresör ve EQ başarıyla tamamlandı. ✨")
+                        print("  -> Mükemmel Stüdyo Sesi (Mastering) başarıyla uygulandı! 🌟")
                     else:
                         print(f"[UYARI] FFmpeg Mastering hatası. Orijinal ses korundu. Hata: {res.stderr[:200]}")
-                except subprocess.TimeoutExpired:
-                    print(f"\n[ACİL MÜDAHALE] Ses dönüştürme işlemi 45 saniyeyi aştı! Sunucunun kilitlenmemesi (RAM şişmemesi) için bu ağır işlem ZORLA DURDURULDU. Orijinal ses ile yola devam ediliyor...")
-                    subprocess.run(["pkill", "-9", "-f", "ffmpeg"], capture_output=True)
-                    
+
             except Exception as ex:
                 print(f"[UYARI] FFmpeg çalıştırılamadı: {ex}. Orijinal ses korundu.")
                         
