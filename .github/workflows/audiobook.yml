@@ -52,5 +52,6 @@ jobs:
           R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
           BOOK_SOURCE: ${{ github.event.inputs.book_id }}
           BOOK_MODE: "full"
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
         run: |
           python main.py
