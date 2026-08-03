@@ -115,6 +115,45 @@ class TTSGenerator:
             
         return turkish_text.strip()
 
+    def _ai_qa_check(self, audio_bytes, text):
+        """Üretilen sesi dinleyip, metni doğru okuyup okumadığını denetleyen Yapay Zeka Yönetmen."""
+        try:
+            from google import genai
+            from google.genai import types
+            
+            prompt = f"""Sen katı ve profesyonel bir Sesli Kitap Yönetmenisin (QA Director).
+Sana verilen sesi (WAV) dinle ve aşağıdaki orijinal metin ile karşılaştır.
+Orijinal Metin:
+---
+{text}
+---
+Spiker bu metni doğru okudu mu? Şunları kontrol et:
+1. Kekeleme, yutkunma veya robotik bozulma (glitch) var mı?
+2. Cümlenin sonu veya kelimeler yutulmuş/kesilmiş mi?
+3. Çok bariz telaffuz veya eksik okuma hataları var mı?
+
+Yanıtını kesin olarak şu formatta ver:
+SONUÇ: [EVET veya HAYIR]
+NEDEN: [Kısaca nedeni]"""
+
+            response = self.client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=[
+                    types.Part.from_bytes(data=audio_bytes, mime_type="audio/wav"),
+                    prompt
+                ]
+            )
+            
+            answer = response.text.strip().upper()
+            if "SONUÇ: HAYIR" in answer or "SONUC: HAYIR" in answer:
+                reason = answer.split("NEDEN:")[-1].strip() if "NEDEN:" in answer else "Tanımlanamayan hata"
+                return False, reason
+            else:
+                reason = answer.split("NEDEN:")[-1].strip() if "NEDEN:" in answer else "Sorun yok"
+                return True, reason
+        except Exception as e:
+            return True, f"QA Sistemi Hatası (Pass): {str(e)}"
+
     def _call_tts_api(self, text, override_voice=None, is_retake=False):
         """Gemini TTS API'sini doğrudan çağırır."""
         # TTS API'ye gitmeden önce telaffuz hatalarını sözlükten düzelt
@@ -342,10 +381,34 @@ YANITIN SADECE JSON OLMALIDIR, BAŞKA HİÇBİR AÇIKLAMA YAZMA."""
                 if len(chunks) > 1:
                     print(f"  -> Alt parça {i+1}/{len(chunks)} işleniyor...")
                     
-                # SAF METİN SESLENDİRME (STABLE TONE)
-                # Metni bölmeden, yapay zekanın duyguyu baştan sona koruması için tek bir parça (blok) halinde gönder.
                 if chunk.strip():
-                    chunk_audio_bytes = self._call_tts_api(chunk.strip())
+                    chunk_audio_bytes = None
+                    max_qa_retries = 3
+                    temp_bytes = None
+                    
+                    for attempt in range(max_qa_retries):
+                        temp_bytes = self._call_tts_api(chunk.strip())
+                        if not temp_bytes:
+                            continue
+                            
+                        # Yapay Zeka Yönetmen (AI QA) Kontrolü
+                        print(f"  -> [AI QA] Ses parçası analiz ediliyor... (Deneme {attempt+1}/{max_qa_retries})")
+                        is_passed, reason = self._ai_qa_check(temp_bytes, chunk.strip())
+                        
+                        if is_passed:
+                            print(f"  -> [AI QA] ONAYLANDI: {reason}")
+                            chunk_audio_bytes = temp_bytes
+                            break
+                        else:
+                            print(f"  -> [AI QA] REDDEDİLDİ: {reason}. Parça baştan okunuyor...")
+                            import time
+                            time.sleep(2)
+                            
+                    # Eğer 3 denemede de geçemezse (veya temp_bytes varsa) son üretileni kullanır
+                    if chunk_audio_bytes is None and temp_bytes is not None:
+                        print("  -> [UYARI] Maksimum QA deneme sınırına ulaşıldı, son üretilen ses kullanılıyor.")
+                        chunk_audio_bytes = temp_bytes
+                        
                     if chunk_audio_bytes:
                         chunk_seg = AudioSegment(
                             data=chunk_audio_bytes,
