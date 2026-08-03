@@ -4,10 +4,8 @@ from book_fetcher import BookFetcher
 from tts_generator import TTSGenerator
 from qa_checker import QAChecker
 from publisher import BookPublisher
-
 import time
 GLOBAL_START_TIME = time.time()
-
 def main():
     print("====================================================")
     print("   K├âÔÇŞ├é┬░TAPDUY OTOMAT├âÔÇŞ├é┬░K SESL├âÔÇŞ├é┬░ K├âÔÇŞ├é┬░TAP ├âãÆ├àÔÇ£RET├âÔÇŞ├é┬░M S├âÔÇŞ├é┬░STEM├âÔÇŞ├é┬░")
@@ -59,7 +57,6 @@ def process_book(book_source, mode):
         if not raw_text:
             print("HATA: Kitap metni al├âÔÇŞ├é┬▒namad├âÔÇŞ├é┬▒. Dosya ad├âÔÇŞ├é┬▒n├âÔÇŞ├é┬▒, URL'yi veya Gutenberg ID'sini kontrol edin.")
             return
-
         # Her kitap i├âãÆ├é┬ğin ayr├âÔÇŞ├é┬▒ bir klas├âãÆ├é┬Âr olu├âÔÇĞ├à┬©tur ve haf├âÔÇŞ├é┬▒zay├âÔÇŞ├é┬▒ oraya kaydet
         book_output_dir = os.path.join(os.getenv("OUTPUT_DIR", "output_audio"), book_folder_name)
         os.makedirs(book_output_dir, exist_ok=True)
@@ -71,13 +68,11 @@ def process_book(book_source, mode):
             print(f"\n[B├âÔÇŞ├é┬░LG├âÔÇŞ├é┬░] Bu kitab├âÔÇŞ├é┬▒n eski spiker haf├âÔÇŞ├é┬▒zas├âÔÇŞ├é┬▒ bulundu. Ses tonu (Voice) de├âÔÇŞ├à┬©i├âÔÇĞ├à┬©tirilmeden orijinal spikerle devam edilecek!")
         else:
             fetcher.analyze_and_save_book_config(raw_text[:3000], config_path)
-
         tts = TTSGenerator(config_path=config_path)
         qa = QAChecker(is_enabled=ENABLE_QA)
     except Exception as e:
         print(f"Mod├âãÆ├é┬╝l ba├âÔÇĞ├à┬©latma hatas├âÔÇŞ├é┬▒: {e}\nL├âãÆ├é┬╝tfen .env dosyan├âÔÇŞ├é┬▒z├âÔÇŞ├é┬▒ kontrol edin.")
         return
-
     # Kitap bilgileri zaten fetcher taraf─▒ndan al─▒nd─▒ (ba┼şar─▒s─▒z olsa da "Bilinmeyen" ile devam edilir)
     # ─░kinci kez API ├ğa─ş─▒r─▒p hesaplar─▒ yakmamak i├ğin tekrar sorulmaz!
     if hasattr(fetcher, 'book_title') and fetcher.book_title:
@@ -115,7 +110,6 @@ def process_book(book_source, mode):
                 json.dump({"title": book_title, "author": book_author}, f, ensure_ascii=False, indent=2)
         except Exception as e:
             print(f"[UYARI] Kitap ad─▒ ├ğevrilemedi: {e}")
-
     fetcher.check_and_warn_copyright(raw_text, book_title, book_author, source=book_source)
     
     # --- K─░TAPDUY UYGULAMASI VER─░TABANI KONTROL├£ ---
@@ -149,11 +143,9 @@ def process_book(book_source, mode):
     
     total_paragraphs = len(paragraphs)
     print(f"\n[B├ä┬░LG├ä┬░] Kitap ba├à┼©ar├ä┬▒yla {total_paragraphs} par├â┬ğaya (b├â┬Âl├â┬╝me) ayr├ä┬▒ld├ä┬▒. ├ä┬░├à┼©lem ba├à┼©l├ä┬▒yor...\n")
-
     # ├â┼ôCRETS├ä┬░Z S├â┼ôRG├â┼ôL├â┼ô HAFIZA (Sliding Window Buffer)
     sliding_window_buffer = []
     start_time = GLOBAL_START_TIME
-
     for i, p in enumerate(paragraphs):
         # 6 SAAT T├ä┬░MER KONTROL├â┼ô (G├ä┬░THUB ACT├ä┬░ONS F├ä┬░├à┬Ş ├âÔÇíEKMEDEN KA├âÔÇíI├à┬Ş)
         if time.time() - start_time > (5 * 3600 + 45 * 60):  # 5 saat 45 dakika
@@ -161,7 +153,6 @@ def process_book(book_source, mode):
             print("Sistem fi├à┼© ├â┬ğekilmeden ├â┬Ânce uyan├ä┬▒yor, verileri G├â┼ôVENLE kasaya kaydedip uykuya ge├â┬ğiyor.")
             print("L├â┬╝tfen g├â┬Ârevi (Run workflow) tekrar ba├à┼©latarak kald├ä┬▒├ä┼©├ä┬▒ yerden devam ediniz.")
             break
-
         progress_pct = (i / total_paragraphs) * 100
         print(f"--- B├âÔÇôL├â┼ôM {i+1} / {total_paragraphs} (%{progress_pct:.1f} Tamamland├ä┬▒) ---")
         
@@ -186,7 +177,6 @@ def process_book(book_source, mode):
                 intro = f"Eserimiz: {book_title}. Yazar: {book_author}. Arkan─▒za yaslan─▒n ve hikayenin tad─▒n─▒ ├ğ─▒kar─▒n. "
             else:
                 intro = ""
-
             turkish_text = fetcher.translate_to_turkish(p, previous_context=previous_context_str)
             
             if i == 0:
@@ -293,10 +283,8 @@ def process_book(book_source, mode):
             return False
             
     return True
-
 import time
 GLOBAL_START_TIME = time.time()
-
 def main():
     print("====================================================")
     print("   K├âÔÇŞ├é┬░TAPDUY OTOMAT├âÔÇŞ├é┬░K SESL├âÔÇŞ├é┬░ K├âÔÇŞ├é┬░TAP ├âãÆ├àÔÇ£RET├âÔÇŞ├é┬░M S├âÔÇŞ├é┬░STEM├âÔÇŞ├é┬░")
@@ -327,14 +315,12 @@ def main():
                     import sys
                     import requests
                     import time
-                    print("
-[GITHUB ACTIONS] Kotalar doldu! 1 saat (3600 sn) uykuya geciliyor...")
+                    print("\n[GITHUB ACTIONS] Kotalar doldu! 1 saat (3600 sn) uykuya geciliyor...")
                     print("Uyku sirasinda 6 saat limiti yaklasirsa uyanip gucunu yeni sunucuya devredecek.")
                     
                     for _ in range(60):
                         if time.time() - GLOBAL_START_TIME > (5 * 3600 + 45 * 60):
-                            print("
-!!! DIKKAT: Uyku sirasinda 6 saatlik limite ulasildi!")
+                            print("\n!!! DIKKAT: Uyku sirasinda 6 saatlik limite ulasildi!")
                             print("[HAFIZA] Tum sesler GitHub Cache kasasina kilitlenecek.")
                             print("[SONSUZ DONGU] Kendi kendini yeniden tetikliyor...")
                             try:
@@ -350,8 +336,7 @@ def main():
                                 print(f" -> Yeniden tetikleme basarisiz: {e}")
                             sys.exit(0)
                         time.sleep(60)
-                    print("
-[UYANDI] 1 Saatlik uyku bitti, kotalar sifirlanmis olmali. Tekrar deneniyor...")
+                    print("\n[UYANDI] 1 Saatlik uyku bitti, kotalar sifirlanmis olmali. Tekrar deneniyor...")
                 else:
                     print(f"\n[BEKLEME] {book_source} ID'li kitap yar─▒m kald─▒ (Kotalar Doldu).")
                     print("Sistem, kotalar─▒n yenilenmesi i├ğin 60 dakika (3600 saniye) uykuya ge├ğiyor...")
@@ -361,7 +346,6 @@ def main():
             # RAM ┼Şi┼şmesini (Memory Leak / OOM) ├ûnlemek ─░├ğin ├ç├Âp Toplay─▒c─▒y─▒ ├çal─▒┼şt─▒r
             import gc
             gc.collect()
-
     # 2. A┼şama: Otonom Fabrika D├Âng├╝s├╝ (Ba┼ştan auto girildiyse veya manuel bittiyse buraya d├╝┼şer)
     if book_source.lower() == "auto":
         print("\n[OTONOM FABR─░KA] Sistem sonsuz d├Âng├╝ modunda ba┼şlat─▒ld─▒!")
@@ -381,14 +365,12 @@ def main():
                     import sys
                     import requests
                     import time
-                    print("
-[GITHUB ACTIONS] Kotalar doldu! 1 saat (3600 sn) uykuya geciliyor...")
+                    print("\n[GITHUB ACTIONS] Kotalar doldu! 1 saat (3600 sn) uykuya geciliyor...")
                     print("Uyku sirasinda 6 saat limiti yaklasirsa uyanip gucunu yeni sunucuya devredecek.")
                     
                     for _ in range(60):
                         if time.time() - GLOBAL_START_TIME > (5 * 3600 + 45 * 60):
-                            print("
-!!! DIKKAT: Uyku sirasinda 6 saatlik limite ulasildi!")
+                            print("\n!!! DIKKAT: Uyku sirasinda 6 saatlik limite ulasildi!")
                             print("[HAFIZA] Tum sesler GitHub Cache kasasina kilitlenecek.")
                             print("[SONSUZ DONGU] Kendi kendini yeniden tetikliyor...")
                             try:
@@ -404,8 +386,7 @@ def main():
                                 print(f" -> Yeniden tetikleme basarisiz: {e}")
                             sys.exit(0)
                         time.sleep(60)
-                    print("
-[UYANDI] 1 Saatlik uyku bitti, kotalar sifirlanmis olmali. Tekrar deneniyor...")
+                    print("\n[UYANDI] 1 Saatlik uyku bitti, kotalar sifirlanmis olmali. Tekrar deneniyor...")
                 else:
                     print(f"\n[OTONOM BEKLEME] {current_id} ID'li kitap yar─▒m kald─▒ (Kotalar Doldu).")
                     print("Sistem, kotalar─▒n yenilenmesi i├ğin 60 dakika (3600 saniye) uykuya ge├ğiyor...")
@@ -419,8 +400,5 @@ def main():
             # RAM ┼Şi┼şmesini (Memory Leak / OOM) ├ûnlemek ─░├ğin ├ç├Âp Toplay─▒c─▒y─▒ ├çal─▒┼şt─▒r
             import gc
             gc.collect()
-
 if __name__ == "__main__":
     main()
-
-
