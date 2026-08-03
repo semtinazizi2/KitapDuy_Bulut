@@ -5,6 +5,9 @@ from tts_generator import TTSGenerator
 from qa_checker import QAChecker
 from publisher import BookPublisher
 
+import time
+GLOBAL_START_TIME = time.time()
+
 def main():
     print("====================================================")
     print("   K├âÔÇŞ├é┬░TAPDUY OTOMAT├âÔÇŞ├é┬░K SESL├âÔÇŞ├é┬░ K├âÔÇŞ├é┬░TAP ├âãÆ├àÔÇ£RET├âÔÇŞ├é┬░M S├âÔÇŞ├é┬░STEM├âÔÇŞ├é┬░")
@@ -149,7 +152,7 @@ def process_book(book_source, mode):
 
     # ├â┼ôCRETS├ä┬░Z S├â┼ôRG├â┼ôL├â┼ô HAFIZA (Sliding Window Buffer)
     sliding_window_buffer = []
-    start_time = time.time()
+    start_time = GLOBAL_START_TIME
 
     for i, p in enumerate(paragraphs):
         # 6 SAAT T├ä┬░MER KONTROL├â┼ô (G├ä┬░THUB ACT├ä┬░ONS F├ä┬░├à┬Ş ├âÔÇíEKMEDEN KA├âÔÇíI├à┬Ş)
@@ -291,6 +294,9 @@ def process_book(book_source, mode):
             
     return True
 
+import time
+GLOBAL_START_TIME = time.time()
+
 def main():
     print("====================================================")
     print("   K├âÔÇŞ├é┬░TAPDUY OTOMAT├âÔÇŞ├é┬░K SESL├âÔÇŞ├é┬░ K├âÔÇŞ├é┬░TAP ├âãÆ├àÔÇ£RET├âÔÇŞ├é┬░M S├âÔÇŞ├é┬░STEM├âÔÇŞ├é┬░")
@@ -320,21 +326,32 @@ def main():
                 if os.environ.get("GITHUB_ACTIONS") == "true":
                     import sys
                     import requests
-                    print("\n[GITHUB ACTIONS] Sistemin fi┼şi ├ğekilmeden ├Ânce G├╝venli ├ç─▒k─▒┼ş yap─▒l─▒yor.")
-                    print("[HAFIZA] T├╝m sesler GitHub Cache kasas─▒na kilitlenecek. Bir sonraki ba┼şlatmada buradan devam edecek.")
-                    print("[SONSUZ D├ûNG├£] Kendi kendini yeniden tetikliyor...")
-                    try:
-                        token = os.environ.get("GITHUB_TOKEN")
-                        if token:
-                            repo = "semtinazizi2/KitapDuy_Bulut"
-                            url = f"https://api.github.com/repos/{repo}/actions/workflows/audiobook.yml/dispatches"
-                            headers = {"Accept": "application/vnd.github+json", "Authorization": f"Bearer {token}", "X-GitHub-Api-Version": "2022-11-28"}
-                            data = {"ref": "main", "inputs": {"book_id": str(book_source)}}
-                            requests.post(url, headers=headers, json=data)
-                            print(" -> Yeni GitHub robotu ba┼şar─▒yla uyand─▒r─▒ld─▒!")
-                    except Exception as e:
-                        print(f" -> Yeniden tetikleme ba┼şar─▒s─▒z: {e}")
-                    sys.exit(0)
+                    import time
+                    print("
+[GITHUB ACTIONS] Kotalar doldu! 1 saat (3600 sn) uykuya geciliyor...")
+                    print("Uyku sirasinda 6 saat limiti yaklasirsa uyanip gucunu yeni sunucuya devredecek.")
+                    
+                    for _ in range(60):
+                        if time.time() - GLOBAL_START_TIME > (5 * 3600 + 45 * 60):
+                            print("
+!!! DIKKAT: Uyku sirasinda 6 saatlik limite ulasildi!")
+                            print("[HAFIZA] Tum sesler GitHub Cache kasasina kilitlenecek.")
+                            print("[SONSUZ DONGU] Kendi kendini yeniden tetikliyor...")
+                            try:
+                                token = os.environ.get("GITHUB_TOKEN")
+                                if token:
+                                    repo = "semtinazizi2/KitapDuy_Bulut"
+                                    url = f"https://api.github.com/repos/{repo}/actions/workflows/audiobook.yml/dispatches"
+                                    headers = {"Accept": "application/vnd.github+json", "Authorization": f"Bearer {token}", "X-GitHub-Api-Version": "2022-11-28"}
+                                    data = {"ref": "main", "inputs": {"book_id": str(current_id if 'current_id' in locals() else book_source)}}
+                                    requests.post(url, headers=headers, json=data)
+                                    print(" -> Yeni GitHub robotu basariyla uyandirildi!")
+                            except Exception as e:
+                                print(f" -> Yeniden tetikleme basarisiz: {e}")
+                            sys.exit(0)
+                        time.sleep(60)
+                    print("
+[UYANDI] 1 Saatlik uyku bitti, kotalar sifirlanmis olmali. Tekrar deneniyor...")
                 else:
                     print(f"\n[BEKLEME] {book_source} ID'li kitap yar─▒m kald─▒ (Kotalar Doldu).")
                     print("Sistem, kotalar─▒n yenilenmesi i├ğin 60 dakika (3600 saniye) uykuya ge├ğiyor...")
@@ -363,21 +380,32 @@ def main():
                 if os.environ.get("GITHUB_ACTIONS") == "true":
                     import sys
                     import requests
-                    print("\n[GITHUB ACTIONS] Sistemin fi┼şi ├ğekilmeden ├Ânce G├╝venli ├ç─▒k─▒┼ş yap─▒l─▒yor.")
-                    print("[HAFIZA] T├╝m sesler GitHub Cache kasas─▒na kilitlenecek. Bir sonraki ba┼şlatmada buradan devam edecek.")
-                    print("[SONSUZ D├ûNG├£] Kendi kendini yeniden tetikliyor...")
-                    try:
-                        token = os.environ.get("GITHUB_TOKEN")
-                        if token:
-                            repo = "semtinazizi2/KitapDuy_Bulut"
-                            url = f"https://api.github.com/repos/{repo}/actions/workflows/audiobook.yml/dispatches"
-                            headers = {"Accept": "application/vnd.github+json", "Authorization": f"Bearer {token}", "X-GitHub-Api-Version": "2022-11-28"}
-                            data = {"ref": "main", "inputs": {"book_id": str(current_id)}}
-                            requests.post(url, headers=headers, json=data)
-                            print(" -> Yeni GitHub robotu ba┼şar─▒yla uyand─▒r─▒ld─▒!")
-                    except Exception as e:
-                        print(f" -> Yeniden tetikleme ba┼şar─▒s─▒z: {e}")
-                    sys.exit(0)
+                    import time
+                    print("
+[GITHUB ACTIONS] Kotalar doldu! 1 saat (3600 sn) uykuya geciliyor...")
+                    print("Uyku sirasinda 6 saat limiti yaklasirsa uyanip gucunu yeni sunucuya devredecek.")
+                    
+                    for _ in range(60):
+                        if time.time() - GLOBAL_START_TIME > (5 * 3600 + 45 * 60):
+                            print("
+!!! DIKKAT: Uyku sirasinda 6 saatlik limite ulasildi!")
+                            print("[HAFIZA] Tum sesler GitHub Cache kasasina kilitlenecek.")
+                            print("[SONSUZ DONGU] Kendi kendini yeniden tetikliyor...")
+                            try:
+                                token = os.environ.get("GITHUB_TOKEN")
+                                if token:
+                                    repo = "semtinazizi2/KitapDuy_Bulut"
+                                    url = f"https://api.github.com/repos/{repo}/actions/workflows/audiobook.yml/dispatches"
+                                    headers = {"Accept": "application/vnd.github+json", "Authorization": f"Bearer {token}", "X-GitHub-Api-Version": "2022-11-28"}
+                                    data = {"ref": "main", "inputs": {"book_id": str(current_id if 'current_id' in locals() else book_source)}}
+                                    requests.post(url, headers=headers, json=data)
+                                    print(" -> Yeni GitHub robotu basariyla uyandirildi!")
+                            except Exception as e:
+                                print(f" -> Yeniden tetikleme basarisiz: {e}")
+                            sys.exit(0)
+                        time.sleep(60)
+                    print("
+[UYANDI] 1 Saatlik uyku bitti, kotalar sifirlanmis olmali. Tekrar deneniyor...")
                 else:
                     print(f"\n[OTONOM BEKLEME] {current_id} ID'li kitap yar─▒m kald─▒ (Kotalar Doldu).")
                     print("Sistem, kotalar─▒n yenilenmesi i├ğin 60 dakika (3600 saniye) uykuya ge├ğiyor...")
