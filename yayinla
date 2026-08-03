@@ -1,0 +1,61 @@
+﻿#!/data/data/com.termux/files/usr/bin/bash
+
+# Renkler
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+NC='\033[0m'
+
+if [ -z "$1" ]; then
+    echo -e "${RED}Kullanim: yayinla "kitap_adi.txt"${NC}"
+    exit 1
+fi
+
+FILE_PATH="$1"
+
+if [ ! -f "$FILE_PATH" ]; then
+    echo -e "${RED}Hata: $FILE_PATH bulunamadi! Lutfen dosya adini dogru yazdiginizdan emin olun.${NC}"
+    exit 1
+fi
+
+# Ayarlari Oku veya Iste
+CONFIG_FILE="$HOME/.kitapduy_config"
+
+if [ ! -f "$CONFIG_FILE" ]; then
+    echo -e "${GREEN}Ilk Kurulum: Lutfen GitHub Kullanici Adinizi yazin (Örn: ali123):${NC}"
+    read GITHUB_USER
+    echo -e "${GREEN}Lutfen GitHub Personal Access Token'inizi (ghp_...) yapistirin:${NC}"
+    read GITHUB_TOKEN
+    echo "GITHUB_USER=$GITHUB_USER" > "$CONFIG_FILE"
+    echo "GITHUB_TOKEN=$GITHUB_TOKEN" >> "$CONFIG_FILE"
+    echo -e "${GREEN}Ayarlar kaydedildi!${NC}"
+fi
+
+source "$CONFIG_FILE"
+REPO_NAME="KitapDuy_Bulut"
+FILENAME=$(basename "$FILE_PATH")
+
+echo -e "${GREEN}Bulut sunucular uyandiriliyor ve dosya yukleniyor...${NC}"
+
+# base64 kodlamasinda yeni satirlari silmek icin -w 0
+CONTENT=$(base64 -w 0 "$FILE_PATH")
+
+# GitHub API ile dosyayi yukle
+RESPONSE=$(curl -s -w "\n%{http_code}" -X PUT \
+  -H "Authorization: token $GITHUB_TOKEN" \
+  -H "Accept: application/vnd.github.v3+json" \
+  -d "{\"message\":\"Yeni kitap eklendi: $FILENAME\",\"content\":\"$CONTENT\"}" \
+  "https://api.github.com/repos/$GITHUB_USER/$REPO_NAME/contents/input_books/$FILENAME")
+
+HTTP_STATUS=$(echo "$RESPONSE" | tail -n1)
+BODY=$(echo "$RESPONSE" | sed '$d')
+
+if [ "$HTTP_STATUS" -eq 201 ] || [ "$HTTP_STATUS" -eq 200 ]; then
+    echo -e "${GREEN}✅ Basarili! '$FILENAME' GitHub'a yuklendi.${NC}"
+    echo -e "${GREEN}Sistem bulutta calismaya basladi! (Yayinlanmasi kitabinizin uzunluguna gore 3-10 dk surebilir)${NC}"
+else
+    echo -e "${RED}❌ Bir hata olustu! HTTP Kodu: $HTTP_STATUS${NC}"
+    echo "$BODY"
+    if [[ "$BODY" == *"Bad credentials"* ]]; then
+        echo -e "${RED}Token hatali. Sifirlamak icin su komutu yazin: rm ~/.kitapduy_config${NC}"
+    fi
+fi

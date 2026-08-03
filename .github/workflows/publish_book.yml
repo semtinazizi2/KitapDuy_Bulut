@@ -1,0 +1,70 @@
+name: 🚀 KitapDuy Otomatik Yayınlayıcı
+
+on:
+  push:
+    paths:
+      - 'input_books/**/*.txt'
+  workflow_dispatch:
+    inputs:
+      gutenberg_id:
+        description: 'Gutenberg Kitap ID veya URL (Örn: 2554)'
+        required: false
+        type: string
+        default: ''
+
+jobs:
+  publish-book:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 📥 Proje Dosyalarını Çek
+      uses: actions/checkout@v4
+
+    - name: 🐍 Python Kurulumu
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+
+    - name: 🛠️ FFmpeg ve Sistem Kütüphanelerini Kur
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ffmpeg
+
+    - name: 📦 Python Kütüphanelerini Kur
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: 🔑 Şifreleri ve Gizli Anahtarları Hazırla
+      env:
+        ENV_FILE_CONTENT: "${{ secrets.ENV_FILE_CONTENT }}"
+        FIREBASE_KEY_CONTENT: "${{ secrets.FIREBASE_KEY_CONTENT }}"
+      run: |
+        echo "$ENV_FILE_CONTENT" > .env
+        echo "$FIREBASE_KEY_CONTENT" > serviceAccountKey.json
+
+    - name: 🔍 Girdi Kontrolü ve Ayarlama
+      run: |
+        if [ -n "${{ github.event.inputs.gutenberg_id }}" ]; then
+          echo "BOOK_SOURCE=${{ github.event.inputs.gutenberg_id }}" >> $GITHUB_ENV
+        else
+          LATEST_FILE=$(ls -t input_books/*.txt 2>/dev/null | head -1)
+          if [ -n "$LATEST_FILE" ]; then
+            echo "BOOK_SOURCE=$LATEST_FILE" >> $GITHUB_ENV
+          else
+            echo "BOOK_SOURCE=TEST" >> $GITHUB_ENV
+          fi
+        fi
+        echo "BOOK_MODE=full" >> $GITHUB_ENV
+
+    - name: 💾 Kitap Hafızasını (Geçmiş Sesleri) Yükle
+      uses: actions/cache@v4
+      with:
+        path: output_audio/
+        key: kitap-hafizasi-${{ github.run_id }}
+        restore-keys: |
+          kitap-hafizasi-
+
+    - name: 🎧📚 Kitabı Seslendir ve Yayınla!
+      run: |
+        python main.py

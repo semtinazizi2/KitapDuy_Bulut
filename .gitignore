@@ -1,0 +1,12 @@
+output_audio/
+venv/
+__pycache__/
+*.pyc
+.env
+firebase_credentials.json
+*.exe
+*.wav
+*.mp3
+*.png
+*.zip
+logs_temp/
