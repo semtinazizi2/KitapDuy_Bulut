@@ -401,19 +401,17 @@ YANITIN SADECE JSON OLMALIDIR, BAŞKA HİÇBİR AÇIKLAMA YAZMA."""
                     tmp_output
                 ]
                 
-                try:
-                    res = subprocess.run(cmd, capture_output=True, text=True)
-                    if res.returncode == 0:
-                        mp3_output_path = output_path.replace(".wav", ".mp3")
-                        shutil.move(tmp_output, mp3_output_path)
-                        if os.path.exists(output_path):
-                            os.remove(output_path) # Ham WAV'ı sil
-                        output_path = mp3_output_path
-                        print("  -> Stereo/Binaural dönüşüm, Radyo Standardı (EBU R128), Kompresör ve EQ başarıyla tamamlandı. ✨")
-                        print("  -> Mükemmel Stüdyo Sesi (Mastering) başarıyla uygulandı! 🌟")
-                    else:
-                        print(f"[UYARI] FFmpeg Mastering hatası. Orijinal ses korundu. Hata: {res.stderr[:200]}")
-
+                res = subprocess.run(cmd, capture_output=True, text=True)
+                if res.returncode == 0:
+                    mp3_output_path = output_path.replace(".wav", ".mp3")
+                    shutil.move(tmp_output, mp3_output_path)
+                    if os.path.exists(output_path):
+                        os.remove(output_path) # Ham WAV'ı sil
+                    output_path = mp3_output_path
+                    print("  -> Stereo/Binaural dönüşüm, Radyo Standardı (EBU R128), Kompresör ve EQ başarıyla tamamlandı. ✨")
+                    print("  -> Mükemmel Stüdyo Sesi (Mastering) başarıyla uygulandı! 🌟")
+                else:
+                    print(f"[UYARI] FFmpeg Mastering hatası. Orijinal ses korundu. Hata: {res.stderr[:200]}")
             except Exception as ex:
                 print(f"[UYARI] FFmpeg çalıştırılamadı: {ex}. Orijinal ses korundu.")
                         
