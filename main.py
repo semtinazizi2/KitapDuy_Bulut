@@ -7,92 +7,92 @@ from publisher import BookPublisher
 
 def main():
     print("====================================================")
-    print("   KÃ„Â°TAPDUY OTOMATÃ„Â°K SESLÃ„Â° KÃ„Â°TAP ÃƒÅ“RETÃ„Â°M SÃ„Â°STEMÃ„Â°")
+    print("   K├âÔÇŞ├é┬░TAPDUY OTOMAT├âÔÇŞ├é┬░K SESL├âÔÇŞ├é┬░ K├âÔÇŞ├é┬░TAP ├âãÆ├àÔÇ£RET├âÔÇŞ├é┬░M S├âÔÇŞ├é┬░STEM├âÔÇŞ├é┬░")
     print("====================================================\n")
     
     print("====================================================\n")
     
-    print("Sisteme bir kitap eklemek iÃƒÂ§in ÃƒÂ¼ÃƒÂ§ seÃƒÂ§eneÃ„Å¸iniz var:")
-    print("1) Sadece Project Gutenberg numarasÃ„Â±nÃ„Â± yazÃ„Â±n (Ãƒâ€“rn: 11)")
-    print("2) KlasÃƒÂ¶rÃƒÂ¼n iÃƒÂ§indeki kendi metin dosyanÃ„Â±zÃ„Â±n adÃ„Â±nÃ„Â± yazÃ„Â±n (Ãƒâ€“rn: benim_kitabim.txt)")
-    print("3) Ã„Â°nternetten doÃ„Å¸rudan URL yapÃ„Â±Ã…Å¸tÃ„Â±rÃ„Â±n (Ãƒâ€“rn: https://standardebooks.org/...) \n")
+    print("Sisteme bir kitap eklemek i├âãÆ├é┬ğin ├âãÆ├é┬╝├âãÆ├é┬ğ se├âãÆ├é┬ğene├âÔÇŞ├à┬©iniz var:")
+    print("1) Sadece Project Gutenberg numaras├âÔÇŞ├é┬▒n├âÔÇŞ├é┬▒ yaz├âÔÇŞ├é┬▒n (├âãÆ├óÔé¼ÔÇ£rn: 11)")
+    print("2) Klas├âãÆ├é┬Âr├âãÆ├é┬╝n i├âãÆ├é┬ğindeki kendi metin dosyan├âÔÇŞ├é┬▒z├âÔÇŞ├é┬▒n ad├âÔÇŞ├é┬▒n├âÔÇŞ├é┬▒ yaz├âÔÇŞ├é┬▒n (├âãÆ├óÔé¼ÔÇ£rn: benim_kitabim.txt)")
+    print("3) ├âÔÇŞ├é┬░nternetten do├âÔÇŞ├à┬©rudan URL yap├âÔÇŞ├é┬▒├âÔÇĞ├à┬©t├âÔÇŞ├é┬▒r├âÔÇŞ├é┬▒n (├âãÆ├óÔé¼ÔÇ£rn: https://standardebooks.org/...) \n")
     
     book_source = os.environ.get("BOOK_SOURCE")
     if not book_source:
-        book_source = input("LÃƒÂ¼tfen Kitap ID'sini, Dosya AdÃ„Â±nÃ„Â± veya URL'yi girin: ").strip()
+        book_source = input("L├âãÆ├é┬╝tfen Kitap ID'sini, Dosya Ad├âÔÇŞ├é┬▒n├âÔÇŞ├é┬▒ veya URL'yi girin: ").strip()
         
     mode = os.environ.get("BOOK_MODE")
     if not mode:
-        mode = input("Sadece kÃ„Â±sa bir 'Test' (Ã„Â°lk 3 paragraf) mi yapmak istersiniz, yoksa kitabÃ„Â±n 'TamamÃ„Â±nÃ„Â±' mÃ„Â±? (Test/TamamÃ„Â±): ").strip().lower()
+        mode = input("Sadece k├âÔÇŞ├é┬▒sa bir 'Test' (├âÔÇŞ├é┬░lk 3 paragraf) mi yapmak istersiniz, yoksa kitab├âÔÇŞ├é┬▒n 'Tamam├âÔÇŞ├é┬▒n├âÔÇŞ├é┬▒' m├âÔÇŞ├é┬▒? (Test/Tamam├âÔÇŞ├é┬▒): ").strip().lower()
     
 def process_book(book_source, mode):
     import os
     ENABLE_QA = False
-    print(f"\n================ YENİ KİTAP ({book_source}) BAŞLIYOR ====================")
-    print("\nAdÃ„Â±m 1: ModÃƒÂ¼ller baÃ…Å¸latÃ„Â±lÃ„Â±yor (Bu iÃ…Å¸lem birkaÃƒÂ§ saniye sÃƒÂ¼rebilir)...")
+    print(f"\n================ YEN─░ K─░TAP ({book_source}) BA┼ŞLIYOR ====================")
+    print("\nAd├âÔÇŞ├é┬▒m 1: Mod├âãÆ├é┬╝ller ba├âÔÇĞ├à┬©lat├âÔÇŞ├é┬▒l├âÔÇŞ├é┬▒yor (Bu i├âÔÇĞ├à┬©lem birka├âãÆ├é┬ğ saniye s├âãÆ├é┬╝rebilir)...")
     try:
         fetcher = BookFetcher()
         
         raw_text = ""
         if book_source.startswith("http://") or book_source.startswith("https://"):
-            print(f"\nAdÃ„Â±m 2: Web sitesinden kitap ÃƒÂ§ekiliyor ({book_source})...")
+            print(f"\nAd├âÔÇŞ├é┬▒m 2: Web sitesinden kitap ├âãÆ├é┬ğekiliyor ({book_source})...")
             raw_text = fetcher.download_from_url(book_source)
-            # URL'den sabit ve okunabilir klasÃƒÂ¶r adÃ„Â± ÃƒÂ¼ret (hash deÃ„Å¸il, URL dosya adÃ„Â±)
+            # URL'den sabit ve okunabilir klas├âãÆ├é┬Âr ad├âÔÇŞ├é┬▒ ├âãÆ├é┬╝ret (hash de├âÔÇŞ├à┬©il, URL dosya ad├âÔÇŞ├é┬▒)
             from urllib.parse import urlparse
             url_path = urlparse(book_source).path
-            url_filename = _os.path.basename(url_path)          # ÃƒÂ¶rn: 0100021h.html
-            url_filename = _os.path.splitext(url_filename)[0]   # ÃƒÂ¶rn: 0100021h
-            book_folder_name = "url_" + url_filename            # ÃƒÂ¶rn: url_0100021h
+            url_filename = _os.path.basename(url_path)          # ├âãÆ├é┬Ârn: 0100021h.html
+            url_filename = _os.path.splitext(url_filename)[0]   # ├âãÆ├é┬Ârn: 0100021h
+            book_folder_name = "url_" + url_filename            # ├âãÆ├é┬Ârn: url_0100021h
         elif book_source.endswith(".txt") and os.path.exists(book_source):
-            print(f"\nAdÃ„Â±m 2: Yerel dosya okunuyor ({book_source})...")
+            print(f"\nAd├âÔÇŞ├é┬▒m 2: Yerel dosya okunuyor ({book_source})...")
             with open(book_source, "r", encoding="utf-8") as f:
                 raw_text = f.read()
             book_folder_name = book_source.replace(".txt", "")
         else:
-            print(f"\nAdÃ„Â±m 2: Kitap indiriliyor (Project Gutenberg ID: {book_source})...")
+            print(f"\nAd├âÔÇŞ├é┬▒m 2: Kitap indiriliyor (Project Gutenberg ID: {book_source})...")
             raw_text = fetcher.download_gutenberg_book(book_source)
             book_folder_name = book_source
             
         if not raw_text:
-            print("HATA: Kitap metni alÃ„Â±namadÃ„Â±. Dosya adÃ„Â±nÃ„Â±, URL'yi veya Gutenberg ID'sini kontrol edin.")
+            print("HATA: Kitap metni al├âÔÇŞ├é┬▒namad├âÔÇŞ├é┬▒. Dosya ad├âÔÇŞ├é┬▒n├âÔÇŞ├é┬▒, URL'yi veya Gutenberg ID'sini kontrol edin.")
             return
 
-        # Her kitap iÃƒÂ§in ayrÃ„Â± bir klasÃƒÂ¶r oluÃ…Å¸tur ve hafÃ„Â±zayÃ„Â± oraya kaydet
+        # Her kitap i├âãÆ├é┬ğin ayr├âÔÇŞ├é┬▒ bir klas├âãÆ├é┬Âr olu├âÔÇĞ├à┬©tur ve haf├âÔÇŞ├é┬▒zay├âÔÇŞ├é┬▒ oraya kaydet
         book_output_dir = os.path.join(os.getenv("OUTPUT_DIR", "output_audio"), book_folder_name)
         os.makedirs(book_output_dir, exist_ok=True)
         
         config_path = os.path.join(book_output_dir, "book_config.json")
         
-        # Kitap HafÃ„Â±zasÃ„Â± (Voice Continuity)
+        # Kitap Haf├âÔÇŞ├é┬▒zas├âÔÇŞ├é┬▒ (Voice Continuity)
         if os.path.exists(config_path):
-            print(f"\n[BÃ„Â°LGÃ„Â°] Bu kitabÃ„Â±n eski spiker hafÃ„Â±zasÃ„Â± bulundu. Ses tonu (Voice) deÃ„Å¸iÃ…Å¸tirilmeden orijinal spikerle devam edilecek!")
+            print(f"\n[B├âÔÇŞ├é┬░LG├âÔÇŞ├é┬░] Bu kitab├âÔÇŞ├é┬▒n eski spiker haf├âÔÇŞ├é┬▒zas├âÔÇŞ├é┬▒ bulundu. Ses tonu (Voice) de├âÔÇŞ├à┬©i├âÔÇĞ├à┬©tirilmeden orijinal spikerle devam edilecek!")
         else:
             fetcher.analyze_and_save_book_config(raw_text[:3000], config_path)
 
         tts = TTSGenerator(config_path=config_path)
         qa = QAChecker(is_enabled=ENABLE_QA)
     except Exception as e:
-        print(f"ModÃƒÂ¼l baÃ…Å¸latma hatasÃ„Â±: {e}\nLÃƒÂ¼tfen .env dosyanÃ„Â±zÃ„Â± kontrol edin.")
+        print(f"Mod├âãÆ├é┬╝l ba├âÔÇĞ├à┬©latma hatas├âÔÇŞ├é┬▒: {e}\nL├âãÆ├é┬╝tfen .env dosyan├âÔÇŞ├é┬▒z├âÔÇŞ├é┬▒ kontrol edin.")
         return
 
-    # Kitap bilgileri zaten fetcher tarafından alındı (başarısız olsa da "Bilinmeyen" ile devam edilir)
-    # İkinci kez API çağırıp hesapları yakmamak için tekrar sorulmaz!
+    # Kitap bilgileri zaten fetcher taraf─▒ndan al─▒nd─▒ (ba┼şar─▒s─▒z olsa da "Bilinmeyen" ile devam edilir)
+    # ─░kinci kez API ├ğa─ş─▒r─▒p hesaplar─▒ yakmamak i├ğin tekrar sorulmaz!
     if hasattr(fetcher, 'book_title') and fetcher.book_title:
         original_book_title = fetcher.book_title
         book_title = fetcher.book_title
         book_author = getattr(fetcher, 'book_author', 'Bilinmeyen Yazar')
     else:
-        # Fallback: Kitap ID'sinden isim türet
+        # Fallback: Kitap ID'sinden isim t├╝ret
         original_book_title = f"Kitap {book_source}"
         book_title = original_book_title
         book_author = "Bilinmeyen Yazar"
         
-    print(f"[BÃ„Â°LGÃ„Â°] Eser Tespit Edildi: '{book_title}' - Yazar: {book_author}")
+    print(f"[B├âÔÇŞ├é┬░LG├âÔÇŞ├é┬░] Eser Tespit Edildi: '{book_title}' - Yazar: {book_author}")
     
     import json
     metadata_path = os.path.join(book_output_dir, "metadata.json")
     
-    # Eğer daha önce Türkçe başlık çevrilip kaydedildiyse oradan oku, yoksa çevir
+    # E─şer daha ├Ânce T├╝rk├ğe ba┼şl─▒k ├ğevrilip kaydedildiyse oradan oku, yoksa ├ğevir
     if os.path.exists(metadata_path):
         try:
             with open(metadata_path, "r", encoding="utf-8") as f:
@@ -101,7 +101,7 @@ def process_book(book_source, mode):
         except Exception:
             pass
     else:
-        print("[BİLGİ] Kitap adı Türkçeye çevriliyor...")
+        print("[B─░LG─░] Kitap ad─▒ T├╝rk├ğeye ├ğevriliyor...")
         try:
             translated_title = fetcher.translate_to_turkish(f"The title of the book is '{book_title}'. Translate ONLY this title to Turkish. If it is already Turkish or a proper name that shouldn't be translated, keep it as is. Do not add any punctuation or extra text.", previous_context="")
             if len(translated_title) > 80 or translated_title.strip() == "":
@@ -111,27 +111,28 @@ def process_book(book_source, mode):
             with open(metadata_path, "w", encoding="utf-8") as f:
                 json.dump({"title": book_title, "author": book_author}, f, ensure_ascii=False, indent=2)
         except Exception as e:
-            print(f"[UYARI] Kitap adı çevrilemedi: {e}")
+            print(f"[UYARI] Kitap ad─▒ ├ğevrilemedi: {e}")
 
     fetcher.check_and_warn_copyright(raw_text, book_title, book_author, source=book_source)
     
-    # --- KİTAPDUY UYGULAMASI VERİTABANI KONTROLÜ ---
-    # Eğer kitap zaten uygulamada varsa (İsim eşleşiyorsa) boşuna üretmemek için atlarız
+    # --- K─░TAPDUY UYGULAMASI VER─░TABANI KONTROL├£ ---
+    # E─şer kitap zaten uygulamada varsa (─░sim e┼şle┼şiyorsa) bo┼şuna ├╝retmemek i├ğin atlar─▒z
     try:
         import firebase_admin
-        from firebase_admin import credentials, firestore
+        from firebase_admin import firestore
+        from firebase_setup import get_firebase_cred
         if not firebase_admin._apps:
-            cred = credentials.Certificate("serviceAccountKey.json")
+            cred = get_firebase_cred()
             firebase_admin.initialize_app(cred)
         db = firestore.client()
         existing = db.collection("books").where("title", "==", book_title).limit(1).get()
         if len(existing) > 0:
-            print(f"\n[BİLGİ] '{book_title}' zaten KitapDuy uygulamasında MECUT! Bu kitap atlanıp yenisine geçilecek...")
+            print(f"\n[B─░LG─░] '{book_title}' zaten KitapDuy uygulamas─▒nda MECUT! Bu kitap atlan─▒p yenisine ge├ğilecek...")
             with open("completed_books.txt", "a", encoding="utf-8") as f:
                 f.write(f"{book_source}\n")
-            return True # Otonom döngü hata sanıp 5 dk beklemesin, hemen yenisine geçsin
+            return True # Otonom d├Âng├╝ hata san─▒p 5 dk beklemesin, hemen yenisine ge├ğsin
     except Exception as e:
-        print(f"[UYARI] Uygulama veritabanı kontrolü yapılamadı: {e}")
+        print(f"[UYARI] Uygulama veritaban─▒ kontrol├╝ yap─▒lamad─▒: {e}")
         
     paragraphs = fetcher.split_into_paragraphs(raw_text)
     
@@ -144,42 +145,42 @@ def process_book(book_source, mode):
     # Klasor zaten yukarida olusturuldu
     
     total_paragraphs = len(paragraphs)
-    print(f"\n[BÄ°LGÄ°] Kitap baÅŸarÄ±yla {total_paragraphs} parÃ§aya (bÃ¶lÃ¼me) ayrÄ±ldÄ±. Ä°ÅŸlem baÅŸlÄ±yor...\n")
+    print(f"\n[B├ä┬░LG├ä┬░] Kitap ba├à┼©ar├ä┬▒yla {total_paragraphs} par├â┬ğaya (b├â┬Âl├â┬╝me) ayr├ä┬▒ld├ä┬▒. ├ä┬░├à┼©lem ba├à┼©l├ä┬▒yor...\n")
 
-    # ÃœCRETSÄ°Z SÃœRGÃœLÃœ HAFIZA (Sliding Window Buffer)
+    # ├â┼ôCRETS├ä┬░Z S├â┼ôRG├â┼ôL├â┼ô HAFIZA (Sliding Window Buffer)
     sliding_window_buffer = []
     start_time = time.time()
 
     for i, p in enumerate(paragraphs):
-        # 6 SAAT TÄ°MER KONTROLÃœ (GÄ°THUB ACTÄ°ONS FÄ°Å Ã‡EKMEDEN KAÃ‡IÅ)
+        # 6 SAAT T├ä┬░MER KONTROL├â┼ô (G├ä┬░THUB ACT├ä┬░ONS F├ä┬░├à┬Ş ├âÔÇíEKMEDEN KA├âÔÇíI├à┬Ş)
         if time.time() - start_time > (5 * 3600 + 45 * 60):  # 5 saat 45 dakika
-            print("\n!!! DÄ°KKAT: GitHub'Ä±n 6 saatlik maksimum sÃ¼resine yaklaÅŸÄ±ldÄ±! !!!")
-            print("Sistem fiÅŸ Ã§ekilmeden Ã¶nce uyanÄ±yor, verileri GÃœVENLE kasaya kaydedip uykuya geÃ§iyor.")
-            print("LÃ¼tfen gÃ¶revi (Run workflow) tekrar baÅŸlatarak kaldÄ±ÄŸÄ± yerden devam ediniz.")
+            print("\n!!! D├ä┬░KKAT: GitHub'├ä┬▒n 6 saatlik maksimum s├â┬╝resine yakla├à┼©├ä┬▒ld├ä┬▒! !!!")
+            print("Sistem fi├à┼© ├â┬ğekilmeden ├â┬Ânce uyan├ä┬▒yor, verileri G├â┼ôVENLE kasaya kaydedip uykuya ge├â┬ğiyor.")
+            print("L├â┬╝tfen g├â┬Ârevi (Run workflow) tekrar ba├à┼©latarak kald├ä┬▒├ä┼©├ä┬▒ yerden devam ediniz.")
             break
 
         progress_pct = (i / total_paragraphs) * 100
-        print(f"--- BÃ–LÃœM {i+1} / {total_paragraphs} (%{progress_pct:.1f} TamamlandÄ±) ---")
+        print(f"--- B├âÔÇôL├â┼ôM {i+1} / {total_paragraphs} (%{progress_pct:.1f} Tamamland├ä┬▒) ---")
         
         filename = f"bolum_{i+1:03d}.mp3"
         audio_path = os.path.join(book_output_dir, filename)
         
-        # KaldÄ±ÄŸÄ± yerden devam etme mantÄ±ÄŸÄ±
+        # Kald├ä┬▒├ä┼©├ä┬▒ yerden devam etme mant├ä┬▒├ä┼©├ä┬▒
         if os.path.exists(audio_path) or os.path.exists(audio_path.replace('.mp3', '.wav')):
-            print(f"[{filename}] veya WAV hali zaten mevcut. KotayÃ„Â± korumak iÃƒÂ§in atlanÃ„Â±yor...")
+            print(f"[{filename}] veya WAV hali zaten mevcut. Kotay├âÔÇŞ├é┬▒ korumak i├âãÆ├é┬ğin atlan├âÔÇŞ├é┬▒yor...")
             print("------------------\n")
             continue
         
-        # 1. Ãƒâ€¡eviri
-        print("Ãƒâ€¡evirisi yapÃ„Â±lÃ„Â±yor...")
+        # 1. ├âãÆ├óÔé¼┬íeviri
+        print("├âãÆ├óÔé¼┬íevirisi yap├âÔÇŞ├é┬▒l├âÔÇŞ├é┬▒yor...")
         
-        # GeÃƒÂ§miÃ…Å¸ baÃ„Å¸lamÃ„Â± dÃƒÂ¼z metne ÃƒÂ§evir (EÃ„Å¸er varsa)
+        # Ge├âãÆ├é┬ğmi├âÔÇĞ├à┬© ba├âÔÇŞ├à┬©lam├âÔÇŞ├é┬▒ d├âãÆ├é┬╝z metne ├âãÆ├é┬ğevir (E├âÔÇŞ├à┬©er varsa)
         previous_context_str = "\n\n".join(sliding_window_buffer)
         
         try:
-            # Kitapduy TanÃ„Â±tÃ„Â±m Anonsu (Sadece 1. bÃƒÂ¶lÃƒÂ¼mÃƒÂ¼n baÃ…Å¸Ã„Â±na eklenir)
+            # Kitapduy Tan├âÔÇŞ├é┬▒t├âÔÇŞ├é┬▒m Anonsu (Sadece 1. b├âãÆ├é┬Âl├âãÆ├é┬╝m├âãÆ├é┬╝n ba├âÔÇĞ├à┬©├âÔÇŞ├é┬▒na eklenir)
             if i == 0:
-                intro = f"Eserimiz: {book_title}. Yazar: {book_author}. Arkanıza yaslanın ve hikayenin tadını çıkarın. "
+                intro = f"Eserimiz: {book_title}. Yazar: {book_author}. Arkan─▒za yaslan─▒n ve hikayenin tad─▒n─▒ ├ğ─▒kar─▒n. "
             else:
                 intro = ""
 
@@ -190,65 +191,65 @@ def process_book(book_source, mode):
                 
             print(f"TR: {turkish_text[:60]}...")
         except Exception as e:
-            print("\n!!! DÃ„Â°KKAT: TÃƒÂ¼m API hesaplarÃ„Â±nÃ„Â±zÃ„Â±n kotasÃ„Â± tamamen doldu !!!")
-            print("LÃƒÂ¼tfen yarÃ„Â±na kadar bekleyin. YarÃ„Â±n sistemi tekrar baÃ…Å¸lattÃ„Â±Ã„Å¸Ã„Â±nÃ„Â±zda otomatik olarak buradan devam edecektir.")
+            print("\n!!! D├âÔÇŞ├é┬░KKAT: T├âãÆ├é┬╝m API hesaplar├âÔÇŞ├é┬▒n├âÔÇŞ├é┬▒z├âÔÇŞ├é┬▒n kotas├âÔÇŞ├é┬▒ tamamen doldu !!!")
+            print("L├âãÆ├é┬╝tfen yar├âÔÇŞ├é┬▒na kadar bekleyin. Yar├âÔÇŞ├é┬▒n sistemi tekrar ba├âÔÇĞ├à┬©latt├âÔÇŞ├é┬▒├âÔÇŞ├à┬©├âÔÇŞ├é┬▒n├âÔÇŞ├é┬▒zda otomatik olarak buradan devam edecektir.")
             break
             
-        # 2. YÃƒÂ¶netmen Senaryosu (AI Studio Settings)
-        print("YÃƒÂ¶netmen Senaryosu (Scene/Context) oluÃ…Å¸turuluyor...")
+        # 2. Y├âãÆ├é┬Ânetmen Senaryosu (AI Studio Settings)
+        print("Y├âãÆ├é┬Ânetmen Senaryosu (Scene/Context) olu├âÔÇĞ├à┬©turuluyor...")
         try:
             director_script = tts.generate_director_script(turkish_text, previous_context=previous_context_str)
         except Exception as e:
-            print("\n!!! DÃ„Â°KKAT: YÃƒÂ¶netmen modÃƒÂ¼lÃƒÂ¼nde kotalar tamamen doldu !!!")
-            print("LÃƒÂ¼tfen yarÃ„Â±na kadar bekleyin. Sistemin kaldÃ„Â±Ã„Å¸Ã„Â± yerden devam edebilmesi iÃƒÂ§in iÃ…Å¸lem durduruluyor.")
+            print("\n!!! D├âÔÇŞ├é┬░KKAT: Y├âãÆ├é┬Ânetmen mod├âãÆ├é┬╝l├âãÆ├é┬╝nde kotalar tamamen doldu !!!")
+            print("L├âãÆ├é┬╝tfen yar├âÔÇŞ├é┬▒na kadar bekleyin. Sistemin kald├âÔÇŞ├é┬▒├âÔÇŞ├à┬©├âÔÇŞ├é┬▒ yerden devam edebilmesi i├âãÆ├é┬ğin i├âÔÇĞ├à┬©lem durduruluyor.")
             break
             
         # 3. Seslendirme (TTS)
-        # TTSGenerator'a artÃ„Â±k tam dosya yolunu veriyoruz
+        # TTSGenerator'a art├âÔÇŞ├é┬▒k tam dosya yolunu veriyoruz
         final_audio_path = tts.generate_audio(director_script, audio_path)
         
-        if not final_audio_path: # Kotalar dolduÃ„Å¸u iÃƒÂ§in None dÃƒÂ¶ndÃƒÂ¼yse
-            print("\n!!! DÃ„Â°KKAT: Seslendirme (TTS) tarafÃ„Â±nda kotalar tamamen doldu !!!")
-            print("YarÃ„Â±n sistemi tekrar ÃƒÂ§alÃ„Â±Ã…Å¸tÃ„Â±rÃ„Â±rsanÃ„Â±z, kaldÃ„Â±Ã„Å¸Ã„Â± bu bÃƒÂ¶lÃƒÂ¼mden otomatik olarak devam edecektir.")
+        if not final_audio_path: # Kotalar doldu├âÔÇŞ├à┬©u i├âãÆ├é┬ğin None d├âãÆ├é┬Ând├âãÆ├é┬╝yse
+            print("\n!!! D├âÔÇŞ├é┬░KKAT: Seslendirme (TTS) taraf├âÔÇŞ├é┬▒nda kotalar tamamen doldu !!!")
+            print("Yar├âÔÇŞ├é┬▒n sistemi tekrar ├âãÆ├é┬ğal├âÔÇŞ├é┬▒├âÔÇĞ├à┬©t├âÔÇŞ├é┬▒r├âÔÇŞ├é┬▒rsan├âÔÇŞ├é┬▒z, kald├âÔÇŞ├é┬▒├âÔÇŞ├à┬©├âÔÇŞ├é┬▒ bu b├âãÆ├é┬Âl├âãÆ├é┬╝mden otomatik olarak devam edecektir.")
             break
             
         # 4. Kalite Kontrol (Opsiyonel)
         if ENABLE_QA and final_audio_path:
             success, msg = qa.check_audio_quality(final_audio_path, turkish_text)
             if not success:
-                print(f"DÃ„Â°KKAT: {filename} dosyasÃ„Â±nda hata olabilir. Rapor: {msg}")
+                print(f"D├âÔÇŞ├é┬░KKAT: {filename} dosyas├âÔÇŞ├é┬▒nda hata olabilir. Rapor: {msg}")
             else:
-                print(f"QA OnayÃ„Â±: {filename} baÃ…Å¸arÃ„Â±lÃ„Â±.")
+                print(f"QA Onay├âÔÇŞ├é┬▒: {filename} ba├âÔÇĞ├à┬©ar├âÔÇŞ├é┬▒l├âÔÇŞ├é┬▒.")
                 
         print("------------------\n")
         
-        # GeÃƒÂ§miÃ…Å¸ hafÃ„Â±zaya metni ekle ve sadece son 3 parÃƒÂ§ayÃ„Â± tut (GeniÃ…Å¸letilmiÃ…Å¸ Context Window)
-        sliding_window_buffer.append(p[:300]) # Sadece ÃƒÂ¶zet tutulur
+        # Ge├âãÆ├é┬ğmi├âÔÇĞ├à┬© haf├âÔÇŞ├é┬▒zaya metni ekle ve sadece son 3 par├âãÆ├é┬ğay├âÔÇŞ├é┬▒ tut (Geni├âÔÇĞ├à┬©letilmi├âÔÇĞ├à┬© Context Window)
+        sliding_window_buffer.append(p[:300]) # Sadece ├âãÆ├é┬Âzet tutulur
         if len(sliding_window_buffer) > 3:
             sliding_window_buffer.pop(0)
             
-    print("Ã„Â°Ã…ÂžLEM SONLANDI. DosyalarÃ„Â±nÃ„Â±z Ã…Å¸u klasÃƒÂ¶rde: ", book_output_dir)
+    print("├âÔÇŞ├é┬░├âÔÇĞ├é┼¥LEM SONLANDI. Dosyalar├âÔÇŞ├é┬▒n├âÔÇŞ├é┬▒z ├âÔÇĞ├à┬©u klas├âãÆ├é┬Ârde: ", book_output_dir)
     
-    # TÃƒÂ¼m bÃƒÂ¶lÃƒÂ¼mler bittiyse otomatik yayÃ„Â±nlama (Zero-Touch Publishing) baÃ…Å¸lat
+    # T├âãÆ├é┬╝m b├âãÆ├é┬Âl├âãÆ├é┬╝mler bittiyse otomatik yay├âÔÇŞ├é┬▒nlama (Zero-Touch Publishing) ba├âÔÇĞ├à┬©lat
     import glob
     completed_mp3s = glob.glob(os.path.join(book_output_dir, "bolum_*.mp3"))
     completed_wavs = glob.glob(os.path.join(book_output_dir, "bolum_*.wav"))
     if (len(completed_mp3s) + len(completed_wavs)) >= len(paragraphs) and mode != "test" and not mode.startswith("t"):
-        print("\nÄŸÅ¸ÂŽâ€° KÃ„Â°TAP SESLENDÃ„Â°RMESÃ„Â° %100 TAMAMLANDI!")
-        print("ÄŸÅ¸Å¡â‚¬ KitapDuy UygulamasÃ„Â± Ã„Â°ÃƒÂ§in Tam Otomatik YayÃ„Â±nlama (Zero-Touch Publishing) BaÃ…Å¸latÃ„Â±lÃ„Â±yor...\n")
+        print("\n├ä┼©├à┬©├é┼¢├óÔé¼┬░ K├âÔÇŞ├é┬░TAP SESLEND├âÔÇŞ├é┬░RMES├âÔÇŞ├é┬░ %100 TAMAMLANDI!")
+        print("├ä┼©├à┬©├à┬í├óÔÇÜ┬¼ KitapDuy Uygulamas├âÔÇŞ├é┬▒ ├âÔÇŞ├é┬░├âãÆ├é┬ğin Tam Otomatik Yay├âÔÇŞ├é┬▒nlama (Zero-Touch Publishing) Ba├âÔÇĞ├à┬©lat├âÔÇŞ├é┬▒l├âÔÇŞ├é┬▒yor...\n")
         try:
             pub = BookPublisher(gemini_client=fetcher.client if hasattr(fetcher, 'client') else None)
             
-            # 1. MP3 olarak birleÃ…Å¸tir
+            # 1. MP3 olarak birle├âÔÇĞ├à┬©tir
             safe_title = "".join([c if c.isalnum() else "_" for c in book_title]).lower().strip("_")
             mp3_filename = f"{safe_title}.mp3"
             mp3_path = pub.merge_audio_to_mp3(book_output_dir, mp3_filename)
             
             if mp3_path:
-                # 2. R2'ye yÃƒÂ¼kle
+                # 2. R2'ye y├âãÆ├é┬╝kle
                 r2_audio_url = pub.upload_to_r2(mp3_path, mp3_filename)
                 
-                # 3. Kapak oluştur ve R2'ye yükle (Kapak araması orijinal İngilizce isimle yapılır ki API'ler kapağı bulabilsin)
+                # 3. Kapak olu┼ştur ve R2'ye y├╝kle (Kapak aramas─▒ orijinal ─░ngilizce isimle yap─▒l─▒r ki API'ler kapa─ş─▒ bulabilsin)
                 r2_cover_url = pub.generate_and_upload_cover(original_book_title, book_author, book_output_dir, safe_title)
                 
                 # 4. Firebase'e kaydet
@@ -261,19 +262,19 @@ def process_book(book_source, mode):
                         cover_url=r2_cover_url
                     )
                     
-                    # [YENİ] Başarılı yayından sonra yerel ses dosyalarını silerek disk alanından tasarruf et
-                    print("\n[TEMİZLİK] Kitap başarıyla buluta yüklendi. Yerel ses dosyaları diskten siliniyor...")
+                    # [YEN─░] Ba┼şar─▒l─▒ yay─▒ndan sonra yerel ses dosyalar─▒n─▒ silerek disk alan─▒ndan tasarruf et
+                    print("\n[TEM─░ZL─░K] Kitap ba┼şar─▒yla buluta y├╝klendi. Yerel ses dosyalar─▒ diskten siliniyor...")
                     try:
                         import glob
                         for audio_file in glob.glob(os.path.join(book_output_dir, "*.wav")):
                             os.remove(audio_file)
                         for audio_file in glob.glob(os.path.join(book_output_dir, "*.mp3")):
                             os.remove(audio_file)
-                        print("[TEMİZLİK] Ses dosyaları başarıyla silindi. (Config ve loglar tutuluyor)")
+                        print("[TEM─░ZL─░K] Ses dosyalar─▒ ba┼şar─▒yla silindi. (Config ve loglar tutuluyor)")
                     except Exception as clean_err:
-                        print(f"[UYARI] Dosyalar silinirken hata oluştu: {clean_err}")
+                        print(f"[UYARI] Dosyalar silinirken hata olu┼ştu: {clean_err}")
                     
-                    # Otonom mod için kitap 100% bittiğinde ID'sini kaydedelim ki bir daha okumasın
+                    # Otonom mod i├ğin kitap 100% bitti─şinde ID'sini kaydedelim ki bir daha okumas─▒n
                     if str(book_source).isdigit():
                         try:
                             with open("completed_books.txt", "a") as f:
@@ -282,9 +283,9 @@ def process_book(book_source, mode):
                             pass
                         
         except Exception as e:
-            print(f"[UYARI] Otomatik yayÃ„Â±nlayÃ„Â±cÃ„Â± ÃƒÂ§alÃ„Â±Ã…Å¸tÃ„Â±rÃ„Â±lÃ„Â±rken bir hata oluÃ…Å¸tu: {e}")
+            print(f"[UYARI] Otomatik yay├âÔÇŞ├é┬▒nlay├âÔÇŞ├é┬▒c├âÔÇŞ├é┬▒ ├âãÆ├é┬ğal├âÔÇŞ├é┬▒├âÔÇĞ├à┬©t├âÔÇŞ├é┬▒r├âÔÇŞ├é┬▒l├âÔÇŞ├é┬▒rken bir hata olu├âÔÇĞ├à┬©tu: {e}")
     else:
-        # Kitap bitmediyse (kota dolduysa vs) hata döndür ki otonom mod beklemeye geçsin
+        # Kitap bitmediyse (kota dolduysa vs) hata d├Ând├╝r ki otonom mod beklemeye ge├ğsin
         if mode != "test" and not mode.startswith("t"):
             return False
             
@@ -292,36 +293,36 @@ def process_book(book_source, mode):
 
 def main():
     print("====================================================")
-    print("   KÃ„Â°TAPDUY OTOMATÃ„Â°K SESLÃ„Â° KÃ„Â°TAP ÃƒÅ“RETÃ„Â°M SÃ„Â°STEMÃ„Â°")
+    print("   K├âÔÇŞ├é┬░TAPDUY OTOMAT├âÔÇŞ├é┬░K SESL├âÔÇŞ├é┬░ K├âÔÇŞ├é┬░TAP ├âãÆ├àÔÇ£RET├âÔÇŞ├é┬░M S├âÔÇŞ├é┬░STEM├âÔÇŞ├é┬░")
     print("====================================================\n")
     
     book_source = os.environ.get("BOOK_SOURCE")
     if not book_source:
-        print("Sisteme bir kitap eklemek iÃƒÂ§in ÃƒÂ¼ÃƒÂ§ seÃƒÂ§eneÃ„Å¸iniz var:")
-        print("1) Sadece Project Gutenberg numarasÃ„Â±nÃ„Â± yazÃ„Â±n (Ãƒâ€“rn: 11)")
+        print("Sisteme bir kitap eklemek i├âãÆ├é┬ğin ├âãÆ├é┬╝├âãÆ├é┬ğ se├âãÆ├é┬ğene├âÔÇŞ├à┬©iniz var:")
+        print("1) Sadece Project Gutenberg numaras├âÔÇŞ├é┬▒n├âÔÇŞ├é┬▒ yaz├âÔÇŞ├é┬▒n (├âãÆ├óÔé¼ÔÇ£rn: 11)")
         print("2) 'auto' yazarak sonsuz otonom yapay zeka fabrikasini baslatin.")
-        book_source = input("LÃƒÂ¼tfen Kitap ID'sini, Dosya AdÃ„Â±nÃ„Â± veya URL'yi girin: ").strip()
+        book_source = input("L├âãÆ├é┬╝tfen Kitap ID'sini, Dosya Ad├âÔÇŞ├é┬▒n├âÔÇŞ├é┬▒ veya URL'yi girin: ").strip()
         
     mode = os.environ.get("BOOK_MODE", "full")
     
-    # 1. Aşama: Manuel Kitap İşlemi (Kullanıcı doğrudan auto yazmadıysa)
+    # 1. A┼şama: Manuel Kitap ─░┼şlemi (Kullan─▒c─▒ do─şrudan auto yazmad─▒ysa)
     if book_source.lower() != "auto":
         while True:
             import time
             success = process_book(book_source, mode)
             if success:
-                print(f"\n[BAŞARILI] {book_source} ID'li manuel kitap işlemi tamamlandı.")
-                print("\n[GEÇİŞ] Sistem şimdi otomatik olarak OTONOM FABRİKA moduna geçiş yapıyor...\n")
+                print(f"\n[BA┼ŞARILI] {book_source} ID'li manuel kitap i┼şlemi tamamland─▒.")
+                print("\n[GE├ç─░┼Ş] Sistem ┼şimdi otomatik olarak OTONOM FABR─░KA moduna ge├ği┼ş yap─▒yor...\n")
                 time.sleep(5)
-                book_source = "auto" # Manuel bitti, otomatiğe geç ve döngüyü kır
+                book_source = "auto" # Manuel bitti, otomati─şe ge├ğ ve d├Âng├╝y├╝ k─▒r
                 break
             else:
                 if os.environ.get("GITHUB_ACTIONS") == "true":
                     import sys
                     import requests
-                    print("\n[GITHUB ACTIONS] Sistemin fişi çekilmeden önce Güvenli Çıkış yapılıyor.")
-                    print("[HAFIZA] Tüm sesler GitHub Cache kasasına kilitlenecek. Bir sonraki başlatmada buradan devam edecek.")
-                    print("[SONSUZ DÖNGÜ] Kendi kendini yeniden tetikliyor...")
+                    print("\n[GITHUB ACTIONS] Sistemin fi┼şi ├ğekilmeden ├Ânce G├╝venli ├ç─▒k─▒┼ş yap─▒l─▒yor.")
+                    print("[HAFIZA] T├╝m sesler GitHub Cache kasas─▒na kilitlenecek. Bir sonraki ba┼şlatmada buradan devam edecek.")
+                    print("[SONSUZ D├ûNG├£] Kendi kendini yeniden tetikliyor...")
                     try:
                         token = os.environ.get("GITHUB_TOKEN")
                         if token:
@@ -330,24 +331,24 @@ def main():
                             headers = {"Accept": "application/vnd.github+json", "Authorization": f"Bearer {token}", "X-GitHub-Api-Version": "2022-11-28"}
                             data = {"ref": "main", "inputs": {"book_id": str(book_source)}}
                             requests.post(url, headers=headers, json=data)
-                            print(" -> Yeni GitHub robotu başarıyla uyandırıldı!")
+                            print(" -> Yeni GitHub robotu ba┼şar─▒yla uyand─▒r─▒ld─▒!")
                     except Exception as e:
-                        print(f" -> Yeniden tetikleme başarısız: {e}")
+                        print(f" -> Yeniden tetikleme ba┼şar─▒s─▒z: {e}")
                     sys.exit(0)
                 else:
-                    print(f"\n[BEKLEME] {book_source} ID'li kitap yarım kaldı (Kotalar Doldu).")
-                    print("Sistem, kotaların yenilenmesi için 60 dakika (3600 saniye) uykuya geçiyor...")
-                    print("Süre dolduğunda kaldığı kitaptan, kaldığı bölümden aynen devam edecektir.")
+                    print(f"\n[BEKLEME] {book_source} ID'li kitap yar─▒m kald─▒ (Kotalar Doldu).")
+                    print("Sistem, kotalar─▒n yenilenmesi i├ğin 60 dakika (3600 saniye) uykuya ge├ğiyor...")
+                    print("S├╝re doldu─şunda kald─▒─ş─▒ kitaptan, kald─▒─ş─▒ b├Âl├╝mden aynen devam edecektir.")
                     time.sleep(3600)
                 
-            # RAM Şişmesini (Memory Leak / OOM) Önlemek İçin Çöp Toplayıcıyı Çalıştır
+            # RAM ┼Şi┼şmesini (Memory Leak / OOM) ├ûnlemek ─░├ğin ├ç├Âp Toplay─▒c─▒y─▒ ├çal─▒┼şt─▒r
             import gc
             gc.collect()
 
-    # 2. Aşama: Otonom Fabrika Döngüsü (Baştan auto girildiyse veya manuel bittiyse buraya düşer)
+    # 2. A┼şama: Otonom Fabrika D├Âng├╝s├╝ (Ba┼ştan auto girildiyse veya manuel bittiyse buraya d├╝┼şer)
     if book_source.lower() == "auto":
-        print("\n[OTONOM FABRİKA] Sistem sonsuz döngü modunda başlatıldı!")
-        print("[OTONOM FABRİKA] Kendi kendine kitap arayıp yayınlamaya devam edecek...")
+        print("\n[OTONOM FABR─░KA] Sistem sonsuz d├Âng├╝ modunda ba┼şlat─▒ld─▒!")
+        print("[OTONOM FABR─░KA] Kendi kendine kitap aray─▒p yay─▒nlamaya devam edecek...")
         from book_fetcher import BookFetcher
         fetcher_instance = BookFetcher()
         current_id = None
@@ -362,9 +363,9 @@ def main():
                 if os.environ.get("GITHUB_ACTIONS") == "true":
                     import sys
                     import requests
-                    print("\n[GITHUB ACTIONS] Sistemin fişi çekilmeden önce Güvenli Çıkış yapılıyor.")
-                    print("[HAFIZA] Tüm sesler GitHub Cache kasasına kilitlenecek. Bir sonraki başlatmada buradan devam edecek.")
-                    print("[SONSUZ DÖNGÜ] Kendi kendini yeniden tetikliyor...")
+                    print("\n[GITHUB ACTIONS] Sistemin fi┼şi ├ğekilmeden ├Ânce G├╝venli ├ç─▒k─▒┼ş yap─▒l─▒yor.")
+                    print("[HAFIZA] T├╝m sesler GitHub Cache kasas─▒na kilitlenecek. Bir sonraki ba┼şlatmada buradan devam edecek.")
+                    print("[SONSUZ D├ûNG├£] Kendi kendini yeniden tetikliyor...")
                     try:
                         token = os.environ.get("GITHUB_TOKEN")
                         if token:
@@ -373,21 +374,21 @@ def main():
                             headers = {"Accept": "application/vnd.github+json", "Authorization": f"Bearer {token}", "X-GitHub-Api-Version": "2022-11-28"}
                             data = {"ref": "main", "inputs": {"book_id": str(current_id)}}
                             requests.post(url, headers=headers, json=data)
-                            print(" -> Yeni GitHub robotu başarıyla uyandırıldı!")
+                            print(" -> Yeni GitHub robotu ba┼şar─▒yla uyand─▒r─▒ld─▒!")
                     except Exception as e:
-                        print(f" -> Yeniden tetikleme başarısız: {e}")
+                        print(f" -> Yeniden tetikleme ba┼şar─▒s─▒z: {e}")
                     sys.exit(0)
                 else:
-                    print(f"\n[OTONOM BEKLEME] {current_id} ID'li kitap yarım kaldı (Kotalar Doldu).")
-                    print("Sistem, kotaların yenilenmesi için 60 dakika (3600 saniye) uykuya geçiyor...")
-                    print("Süre dolduğunda kaldığı kitaptan, kaldığı bölümden aynen devam edecektir.")
+                    print(f"\n[OTONOM BEKLEME] {current_id} ID'li kitap yar─▒m kald─▒ (Kotalar Doldu).")
+                    print("Sistem, kotalar─▒n yenilenmesi i├ğin 60 dakika (3600 saniye) uykuya ge├ğiyor...")
+                    print("S├╝re doldu─şunda kald─▒─ş─▒ kitaptan, kald─▒─ş─▒ b├Âl├╝mden aynen devam edecektir.")
                     time.sleep(3600)
             else:
-                print("\n[OTONOM FABRİKA] Kitap bitti! 10 saniye sonra sıradaki kitaba geçiliyor...\n")
-                current_id = None # Eski kitap bitti, yeni kitaba geçmek için sıfırla
+                print("\n[OTONOM FABR─░KA] Kitap bitti! 10 saniye sonra s─▒radaki kitaba ge├ğiliyor...\n")
+                current_id = None # Eski kitap bitti, yeni kitaba ge├ğmek i├ğin s─▒f─▒rla
                 time.sleep(10)
                 
-            # RAM Şişmesini (Memory Leak / OOM) Önlemek İçin Çöp Toplayıcıyı Çalıştır
+            # RAM ┼Şi┼şmesini (Memory Leak / OOM) ├ûnlemek ─░├ğin ├ç├Âp Toplay─▒c─▒y─▒ ├çal─▒┼şt─▒r
             import gc
             gc.collect()
 
