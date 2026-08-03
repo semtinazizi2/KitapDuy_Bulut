@@ -56,4 +56,4 @@ jobs:
           BOOK_MODE: "full"
           GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
         run: |
-          python main.py
+          PYTHONUNBUFFERED=1 python main.py
