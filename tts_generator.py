@@ -36,12 +36,35 @@ class TTSGenerator:
 
     def apply_pronunciation_fixes(self, text):
         """Sözlükteki hatalı kelimeleri, TTS motoruna gitmeden önce fonetik veya doğru karşılıklarıyla değiştirir."""
+        # Hardcoded advanced cleaning for English abbreviations
+        clean_dict = {
+            "Mr.": "Mister",
+            "Mrs.": "Missus",
+            "St.": "Saint",
+            "Dr.": "Doctor",
+            "Prof.": "Professor",
+            "Capt.": "Captain",
+            "Lieut.": "Lieutenant",
+            "Col.": "Colonel",
+            "Gen.": "General",
+            "Rev.": "Reverend",
+            "Hon.": "Honorable",
+            "etc.": "et cetera",
+            "e.g.": "for example",
+            "i.e.": "that is",
+            "&": "and",
+            "_": " "
+        }
+        
+        import re
+        for wrong_word, correct_word in clean_dict.items():
+            pattern = re.compile(rf'\b{re.escape(wrong_word)}\b', re.IGNORECASE)
+            text = pattern.sub(correct_word, text)
+            
         if not self.pronunciation_dict:
             return text
             
-        import re
         for wrong_word, correct_word in self.pronunciation_dict.items():
-            # Sadece tam kelime eşleşmelerini (word boundaries) değiştirir
             pattern = re.compile(rf'\b{re.escape(wrong_word)}\b', re.IGNORECASE)
             text = pattern.sub(correct_word, text)
         return text
@@ -109,7 +132,8 @@ class TTSGenerator:
                 response = self.client.models.generate_content(
                     model="gemini-2.5-flash-preview-tts",
                     contents=text,
-                    config=types.GenerateContentConfig(
+                                        config=types.GenerateContentConfig(
+                        system_instruction="You are an award-winning, professional audiobook narrator. Read the following text with perfect diction, natural pacing, a subtle emotional resonance, and high-quality studio delivery. Do not add any extra words; simply perform the text provided.",
                         response_modalities=["AUDIO"],
                         safety_settings=[
                             types.SafetySetting(category="HARM_CATEGORY_HATE_SPEECH", threshold="BLOCK_NONE"),
@@ -396,7 +420,7 @@ YANITIN SADECE JSON OLMALIDIR, BAŞKA HİÇBİR AÇIKLAMA YAZMA."""
                 # 3D Binaural etki, EBU R128 Radyo Standardı (loudnorm), Kompresör (acompressor), ve EQ (tiz/bas)
                 cmd = [
                     ffmpeg_bin, "-y", "-i", output_path,
-                    "-af", "aformat=channel_layouts=stereo,adelay=501ms|500ms,apad=pad_dur=1.5,loudnorm=I=-16:TP=-1.5:LRA=11,acompressor,bass=g=2,treble=g=1",
+                    "-af", "aformat=channel_layouts=stereo,adelay=501ms|500ms,apad=pad_dur=1.5,aecho=0.8:0.85:40:0.2,loudnorm=I=-16:TP=-1.5:LRA=11,acompressor,bass=g=2,treble=g=1",
                     "-c:a", "libmp3lame", "-b:a", "192k",
                     tmp_output
                 ]
