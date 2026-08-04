@@ -4,6 +4,9 @@ import time
 import wave
 import re
 from account_manager import account_manager
+from groq_account_manager import groq_account_manager
+import requests
+import difflib
 from qa_checker import QAChecker
 
 # Yeni Gemini SDK (Audio yetenekleri için google-genai kütüphanesini kullanıyoruz)
@@ -115,44 +118,60 @@ class TTSGenerator:
             
         return turkish_text.strip()
 
-    def _ai_qa_check(self, audio_bytes, text):
-        """Üretilen sesi dinleyip, metni doğru okuyup okumadığını denetleyen Yapay Zeka Yönetmen."""
-        try:
-            from google import genai
-            from google.genai import types
+    def _ai_qa_check(self, audio_bytes, original_text):
+        """Groq Whisper API kullanarak üretilen sesi denetler (Speech-to-Text)."""
+        if not groq_account_manager.groq_keys:
+            return True, "Groq API Anahtarı Yok, Denetim Atlandı"
             
-            prompt = f"""Sen katı ve profesyonel bir Sesli Kitap Yönetmenisin (QA Director).
-Sana verilen sesi (WAV) dinle ve aşağıdaki orijinal metin ile karşılaştır.
-Orijinal Metin:
----
-{text}
----
-Spiker bu metni doğru okudu mu? Şunları kontrol et:
-1. Kekeleme, yutkunma veya robotik bozulma (glitch) var mı?
-2. Cümlenin sonu veya kelimeler yutulmuş/kesilmiş mi?
-3. Çok bariz telaffuz veya eksik okuma hataları var mı?
-
-Yanıtını kesin olarak şu formatta ver:
-SONUÇ: [EVET veya HAYIR]
-NEDEN: [Kısaca nedeni]"""
-
-            response = self.client.models.generate_content(
-                model="gemini-2.5-flash",
-                contents=[
-                    types.Part.from_bytes(data=audio_bytes, mime_type="audio/wav"),
-                    prompt
-                ]
-            )
+        retry_count = 0
+        while retry_count < len(groq_account_manager.groq_keys):
+            groq_key = groq_account_manager.get_current_groq_key()
+            url = "https://api.groq.com/openai/v1/audio/transcriptions"
+            headers = {"Authorization": f"Bearer {groq_key}"}
+            files = {'file': ('audio.wav', audio_bytes, 'audio/wav')}
+            data = {'model': 'whisper-large-v3', 'response_format': 'json', 'language': 'tr'}
             
-            answer = response.text.strip().upper()
-            if "SONUÇ: HAYIR" in answer or "SONUC: HAYIR" in answer:
-                reason = answer.split("NEDEN:")[-1].strip() if "NEDEN:" in answer else "Tanımlanamayan hata"
-                return False, reason
-            else:
-                reason = answer.split("NEDEN:")[-1].strip() if "NEDEN:" in answer else "Sorun yok"
-                return True, reason
-        except Exception as e:
-            return True, f"QA Sistemi Hatası (Pass): {str(e)}"
+            try:
+                resp = requests.post(url, headers=headers, files=files, data=data)
+                
+                if resp.status_code == 429:
+                    print(f"  -> [GROQ HATA] Kota doldu (429). Groq hesabı değiştiriliyor...")
+                    groq_account_manager.switch_groq_account()
+                    retry_count += 1
+                    continue
+                    
+                resp.raise_for_status()
+                result = resp.json()
+                transcribed_text = result.get('text', '').strip()
+                
+                # Metinleri normalize et (küçük harf, noktalama işaretlerini sil)
+                import re
+                def normalize(text):
+                    text = text.lower().strip()
+                    replacements = {'â': 'a', 'î': 'i', 'û': 'u'}
+                    for k, v in replacements.items(): text = text.replace(k, v)
+                    return re.sub(r'[^\w\s]', '', text)
+                    
+                norm_orig = normalize(original_text)
+                norm_trans = normalize(transcribed_text)
+                
+                if not norm_orig: return True, "Orijinal metin boş"
+                
+                if len(norm_trans) < len(norm_orig) * 0.7:
+                    return False, f"Cümle yutulmuş (Beklenen: {len(norm_orig)} harf, Gelen: {len(norm_trans)} harf)"
+                    
+                similarity = difflib.SequenceMatcher(None, norm_orig.split(), norm_trans.split()).ratio()
+                if similarity < 0.80:
+                    return False, f"Düşük benzerlik (%{similarity*100:.1f})"
+                    
+                return True, f"Başarılı (%{similarity*100:.1f} Eşleşme)"
+                
+            except Exception as e:
+                print(f"  -> [GROQ UYARI] STT işlemi başarısız: {e}")
+                groq_account_manager.switch_groq_account()
+                retry_count += 1
+                
+        return True, "Tüm Groq hesapları tükendi veya hata verdi, atlanıyor"
 
     def _call_tts_api(self, text, override_voice=None, is_retake=False):
         """Gemini TTS API'sini doğrudan çağırır."""
@@ -417,9 +436,9 @@ YANITIN SADECE JSON OLMALIDIR, BAŞKA HİÇBİR AÇIKLAMA YAZMA."""
                             continue
                             
                         # Yapay Zeka Yönetmen (AI QA) Kontrolü
-                        # print(f"  -> [AI QA] Ses parçası analiz ediliyor... (Deneme {attempt+1}/{max_qa_retries})")
+                        print(f"  -> [GROQ QA] Ses Groq Whisper ile analiz ediliyor... (Deneme {attempt+1}/{max_qa_retries})")
                         # is_passed, reason = self._ai_qa_check(temp_bytes, chunk.strip())
-                        is_passed, reason = True, "Yapay Zeka Denetimi Devre Dışı"
+                        is_passed, reason = self._ai_qa_check(temp_bytes, chunk.strip())
                         
                         if is_passed:
                             print(f"  -> [AI QA] ONAYLANDI: {reason}")
