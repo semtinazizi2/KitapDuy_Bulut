@@ -410,7 +410,10 @@ YANITIN SADECE JSON OLMALIDIR, BAŞKA HİÇBİR AÇIKLAMA YAZMA."""
                     
                     for attempt in range(max_qa_retries):
                         temp_bytes = self._call_tts_api(chunk.strip())
-                        if not temp_bytes:
+                          if temp_bytes == b"":
+                              chunk_audio_bytes = b""
+                              break
+                          if temp_bytes is None:
                             continue
                             
                         # Yapay Zeka Yönetmen (AI QA) Kontrolü
