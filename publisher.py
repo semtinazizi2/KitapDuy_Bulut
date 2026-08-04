@@ -345,13 +345,45 @@ SADECE JSON D├ûN:
                 "viewCount": 0
             }
 
-            if self.gemini_client:
+            if True:
                 try:
-                    res = self.gemini_client.models.generate_content(
-                        model="gemini-3.5-flash-lite",
-                        contents=prompt
-                    )
-                    res_text = res.text.strip()
+                    import requests
+                    import json
+                    import time
+                    from groq_account_manager import groq_account_manager
+                    
+                    res_text = ""
+                    retry_count = 0
+                    
+                    while retry_count < len(groq_account_manager.groq_keys):
+                        groq_key = groq_account_manager.get_current_groq_key()
+                        url = "https://api.groq.com/openai/v1/chat/completions"
+                        headers = {"Authorization": f"Bearer {groq_key}", "Content-Type": "application/json"}
+                        data = {
+                            "model": "llama-3.3-70b-versatile",
+                            "messages": [{"role": "user", "content": prompt}],
+                            "temperature": 0.7
+                        }
+                        
+                        try:
+                            resp = requests.post(url, headers=headers, json=data)
+                            if resp.status_code == 429:
+                                print("  -> [GROQ HATA] Kota doldu, hesap değiştiriliyor...")
+                                groq_account_manager.switch_groq_account()
+                                retry_count += 1
+                                continue
+                                
+                            resp.raise_for_status()
+                            res_text = resp.json()["choices"][0]["message"]["content"].strip()
+                            break
+                        except Exception as e:
+                            print(f"  -> [GROQ UYARI] Groq API hatası: {e}")
+                            groq_account_manager.switch_groq_account()
+                            retry_count += 1
+                            
+                    if not res_text:
+                        raise Exception("Groq API'den yanıt alınamadı.")
+                        
                     if "```json" in res_text:
                         res_text = res_text.split("```json")[1].split("```")[0].strip()
                     elif "```" in res_text:
