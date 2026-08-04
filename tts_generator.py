@@ -173,6 +173,46 @@ class TTSGenerator:
                 
         return True, "Tüm Groq hesapları tükendi veya hata verdi, atlanıyor"
 
+    def _groq_safety_precheck(self, text):
+        """Groq Llama-3.3-70B kullanarak metnin güvenli ve mantıklı olup olmadığını (sansür/çöp metin) denetler."""
+        if not groq_account_manager.groq_keys:
+            return True
+            
+        retry_count = 0
+        prompt = f'''Sen bir sesli kitap kalite ve güvenlik editörüsün. Görevin, aşağıda verilen Türkçe metnin seslendirilmeye (TTS) uygun olup olmadığını denetlemektir.
+EĞER metin aşırı küfür, vahşet, pornografik içerik, nefret söylemi içeriyorsa VEYA sadece anlamsız sayfa numaraları, içindekiler tablosu, indeks veya telif hakkı uyarılarından ibaretse "UNSAFE" cevabı ver.
+EĞER metin normal bir kitabın okunabilir hikayesi, açıklaması veya akademik içeriği ise (tarih, bilim, felsefe dahil) "SAFE" cevabı ver.
+SADECE "SAFE" veya "UNSAFE" kelimesini yaz, başka hiçbir açıklama yapma.
+
+Metin:
+"{text}"'''
+
+        while retry_count < len(groq_account_manager.groq_keys):
+            groq_key = groq_account_manager.get_current_groq_key()
+            url = "https://api.groq.com/openai/v1/chat/completions"
+            headers = {"Authorization": f"Bearer {groq_key}", "Content-Type": "application/json"}
+            data = {
+                "model": "llama-3.3-70b-versatile",
+                "messages": [{"role": "user", "content": prompt}],
+                "temperature": 0.1
+            }
+            try:
+                import requests
+                resp = requests.post(url, headers=headers, json=data, timeout=5)
+                if resp.status_code == 429:
+                    groq_account_manager.switch_groq_account()
+                    retry_count += 1
+                    continue
+                resp.raise_for_status()
+                res_text = resp.json()["choices"][0]["message"]["content"].strip().upper()
+                if "UNSAFE" in res_text:
+                    return False
+                return True
+            except Exception as e:
+                groq_account_manager.switch_groq_account()
+                retry_count += 1
+        return True
+
     def _call_tts_api(self, text, override_voice=None, is_retake=False):
         """Gemini TTS API'sini doğrudan çağırır."""
         # TTS API'ye gitmeden önce telaffuz hatalarını sözlükten düzelt
@@ -430,26 +470,30 @@ YANITIN SADECE JSON OLMALIDIR, BAŞKA HİÇBİR AÇIKLAMA YAZMA."""
                     max_qa_retries = 3
                     temp_bytes = None
                     
-                    for attempt in range(max_qa_retries):
-                        temp_bytes = self._call_tts_api(chunk.strip())
-                        if temp_bytes == b"":
-                            chunk_audio_bytes = b""
-                            break
-                        if temp_bytes is None:
-                            continue
+                    if not self._groq_safety_precheck(chunk.strip()):
+                        print("  -> [BİLGİ] Groq Ön-Denetim (AI Editör): Metin güvensiz veya anlamsız bulundu, atlanıyor.")
+                        chunk_audio_bytes = b""
+                    else:
+                        for attempt in range(max_qa_retries):
+                            temp_bytes = self._call_tts_api(chunk.strip())
+                            if temp_bytes == b"":
+                                chunk_audio_bytes = b""
+                                break
+                            if temp_bytes is None:
+                                continue
+                                
+                            # Yapay Zeka Yönetmen (AI QA) Kontrolü
+                            print(f"  -> [GROQ QA] Ses Groq Whisper ile analiz ediliyor... (Deneme {attempt+1}/{max_qa_retries})")
+                            # is_passed, reason = self._ai_qa_check(temp_bytes, chunk.strip())
+                            is_passed, reason = self._ai_qa_check(temp_bytes, chunk.strip())
                             
-                        # Yapay Zeka Yönetmen (AI QA) Kontrolü
-                        print(f"  -> [GROQ QA] Ses Groq Whisper ile analiz ediliyor... (Deneme {attempt+1}/{max_qa_retries})")
-                        # is_passed, reason = self._ai_qa_check(temp_bytes, chunk.strip())
-                        is_passed, reason = self._ai_qa_check(temp_bytes, chunk.strip())
-                        
-                        if is_passed:
-                            print(f"  -> [AI QA] ONAYLANDI: {reason}")
-                            chunk_audio_bytes = temp_bytes
-                            break
-                        else:
-                            print(f"  -> [AI QA] REDDEDİLDİ: {reason}. Parça baştan okunuyor...")
-                            time.sleep(2)
+                            if is_passed:
+                                print(f"  -> [AI QA] ONAYLANDI: {reason}")
+                                chunk_audio_bytes = temp_bytes
+                                break
+                            else:
+                                print(f"  -> [AI QA] REDDEDİLDİ: {reason}. Parça baştan okunuyor...")
+                                time.sleep(2)
                             
                     # Eğer 3 denemede de geçemezse (veya temp_bytes varsa) son üretileni kullanır
                     if chunk_audio_bytes is None and temp_bytes is not None:
