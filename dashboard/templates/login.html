@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KitapDuy - Yetkili Girişi</title>
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --glass-bg: rgba(30, 41, 59, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --neon-blue: #38bdf8;
+            --text-light: #f8fafc;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: radial-gradient(circle at top right, #1e293b, var(--bg-dark));
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--text-light);
+            overflow: hidden;
+        }
+
+        .login-container {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            width: 320px;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 30px;
+            letter-spacing: 2px;
+            background: linear-gradient(90deg, #38bdf8, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .pin-display {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .pin-dot {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .pin-dot.filled {
+            background: var(--neon-blue);
+            box-shadow: 0 0 10px var(--neon-blue);
+        }
+
+        .keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .key {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 24px;
+            padding: 15px 0;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s;
+            user-select: none;
+        }
+
+        .key:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: scale(1.05);
+        }
+
+        .key:active {
+            background: var(--neon-blue);
+            transform: scale(0.95);
+        }
+
+        .error-msg {
+            color: #ef4444;
+            font-size: 14px;
+            margin-top: 15px;
+            height: 20px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-container">
+        <div class="logo">KİTAPDUY<br><span style="font-size: 14px; font-weight: 400; color: #94a3b8;-webkit-text-fill-color: initial;">KOMUTA MERKEZİ</span></div>
+        
+        <div class="pin-display">
+            <div class="pin-dot" id="dot1"></div>
+            <div class="pin-dot" id="dot2"></div>
+            <div class="pin-dot" id="dot3"></div>
+            <div class="pin-dot" id="dot4"></div>
+        </div>
+
+        <div class="keypad">
+            <div class="key" onclick="press('1')">1</div>
+            <div class="key" onclick="press('2')">2</div>
+            <div class="key" onclick="press('3')">3</div>
+            <div class="key" onclick="press('4')">4</div>
+            <div class="key" onclick="press('5')">5</div>
+            <div class="key" onclick="press('6')">6</div>
+            <div class="key" onclick="press('7')">7</div>
+            <div class="key" onclick="press('8')">8</div>
+            <div class="key" onclick="press('9')">9</div>
+            <div class="key" onclick="clearPin()" style="font-size: 16px; display: flex; align-items: center; justify-content: center;">C</div>
+            <div class="key" onclick="press('0')">0</div>
+            <div class="key" onclick="backspace()" style="font-size: 16px; display: flex; align-items: center; justify-content: center;">&larr;</div>
+        </div>
+
+        <div class="error-msg" id="errorMsg">Hatalı PIN</div>
+    </div>
+
+    <script>
+        let currentPin = "";
+        
+        function updateDots() {
+            for (let i = 1; i <= 4; i++) {
+                const dot = document.getElementById('dot' + i);
+                if (i <= currentPin.length) {
+                    dot.classList.add('filled');
+                } else {
+                    dot.classList.remove('filled');
+                }
+            }
+            document.getElementById('errorMsg').style.opacity = '0';
+        }
+
+        function press(num) {
+            if (currentPin.length < 4) {
+                currentPin += num;
+                updateDots();
+                
+                if (currentPin.length === 4) {
+                    setTimeout(submitPin, 200);
+                }
+            }
+        }
+
+        function clearPin() {
+            currentPin = "";
+            updateDots();
+        }
+
+        function backspace() {
+            if (currentPin.length > 0) {
+                currentPin = currentPin.slice(0, -1);
+                updateDots();
+            }
+        }
+
+        function submitPin() {
+            fetch('/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ pin: currentPin }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.reload();
+                } else {
+                    document.getElementById('errorMsg').style.opacity = '1';
+                    // Shake animation
+                    const container = document.querySelector('.login-container');
+                    container.style.animation = 'none';
+                    setTimeout(() => {
+                        container.style.animation = 'shake 0.4s';
+                    }, 10);
+                    setTimeout(clearPin, 400);
+                }
+            });
+        }
+        
+        // Add shake keyframes dynamically
+        const style = document.createElement('style');
+        style.innerHTML = `
+            @keyframes shake {
+                0% { transform: translateX(0); }
+                25% { transform: translateX(-10px); }
+                50% { transform: translateX(10px); }
+                75% { transform: translateX(-10px); }
+                100% { transform: translateX(0); }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // Keyboard support
+        document.addEventListener('keydown', (e) => {
+            if (e.key >= '0' && e.key <= '9') press(e.key);
+            if (e.key === 'Backspace') backspace();
+            if (e.key === 'Escape' || e.key === 'Delete') clearPin();
+        });
+    </script>
+</body>
+</html>

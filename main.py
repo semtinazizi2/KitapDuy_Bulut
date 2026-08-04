@@ -4,8 +4,32 @@ from book_fetcher import BookFetcher
 from tts_generator import TTSGenerator
 from qa_checker import QAChecker
 from publisher import BookPublisher
-import time
+
 GLOBAL_START_TIME = time.time()
+
+def update_telemetry(book_id, book_title, current_chunk, total_chunks, voice):
+    try:
+        import firebase_admin
+        from firebase_admin import firestore
+        from firebase_setup import get_firebase_cred
+        import time
+        if not firebase_admin._apps:
+            cred = get_firebase_cred()
+            firebase_admin.initialize_app(cred)
+        db = firestore.client()
+        pct = (current_chunk / total_chunks) * 100 if total_chunks > 0 else 0
+        db.collection("active_jobs").document("github_worker").set({
+            "book_id": str(book_id),
+            "book_title": str(book_title),
+            "current_chunk": current_chunk,
+            "total_chunks": total_chunks,
+            "progress_pct": pct,
+            "voice": str(voice),
+            "last_update": time.time()
+        })
+    except Exception as e:
+        pass # Ignore telemetry errors so it doesn't break the main loop
+
 def main():
     print("====================================================")
     print("   K├âÔÇŞ├é┬░TAPDUY OTOMAT├âÔÇŞ├é┬░K SESL├âÔÇŞ├é┬░ K├âÔÇŞ├é┬░TAP ├âãÆ├àÔÇ£RET├âÔÇŞ├é┬░M S├âÔÇŞ├é┬░STEM├âÔÇŞ├é┬░")
@@ -154,7 +178,11 @@ def process_book(book_source, mode):
             print("L├â┬╝tfen g├â┬Ârevi (Run workflow) tekrar ba├à┼©latarak kald├ä┬▒├ä┼©├ä┬▒ yerden devam ediniz.")
             break
         progress_pct = (i / total_paragraphs) * 100
-        print(f"--- B├âÔÇôL├â┼ôM {i+1} / {total_paragraphs} (%{progress_pct:.1f} Tamamland├ä┬▒) ---")
+        print(f"--- BÖLÜM {i+1} / {total_paragraphs} (%{progress_pct:.1f} Tamamlandı) ---")
+        
+        # Telemetry update
+        voice_name = tts.config.get("voice", "Bilinmiyor")
+        update_telemetry(book_source, book_title, i+1, total_paragraphs, voice_name)
         
         filename = f"bolum_{i+1:03d}.mp3"
         audio_path = os.path.join(book_output_dir, filename)
