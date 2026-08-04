@@ -97,8 +97,8 @@ def dashboard_data():
     job = c.fetchone()
     
     # Get logs (last 50)
-    c.execute("SELECT timestamp, message FROM logs ORDER BY id DESC LIMIT 50")
-    logs = [{"time": datetime.fromtimestamp(r["timestamp"]).strftime("%H:%M:%S"), "msg": r["message"]} for r in c.fetchall()]
+    c.execute("SELECT id, timestamp, message FROM logs ORDER BY id DESC LIMIT 50")
+    logs = [{"id": r["id"], "time": datetime.fromtimestamp(r["timestamp"]).strftime("%H:%M:%S"), "msg": r["message"]} for r in c.fetchall()]
     logs.reverse()
     
     # Get queue

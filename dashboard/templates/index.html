@@ -309,7 +309,7 @@
             grid.appendChild(node);
         }
 
-        let lastLogsCount = 0;
+        let lastLogId = 0;
         let isUserScrolling = false;
         
         const terminal = document.getElementById("terminal");
@@ -348,14 +348,17 @@
                 }
 
                 // 2. Logs Terminal
-                if (data.logs.length > 0 && data.logs.length !== lastLogsCount) {
-                    terminal.innerHTML = data.logs.map(log => 
-                        `<div class="term-line"><span class="term-time">[${log.time}]</span> ${log.msg}</div>`
-                    ).join('');
-                    if (!isUserScrolling) {
-                        terminal.scrollTop = terminal.scrollHeight;
+                if (data.logs.length > 0) {
+                    const latestLogId = data.logs[data.logs.length - 1].id;
+                    if (latestLogId !== lastLogId) {
+                        terminal.innerHTML = data.logs.map(log => 
+                            `<div class="term-line"><span class="term-time">[${log.time}]</span> ${log.msg}</div>`
+                        ).join('');
+                        if (!isUserScrolling) {
+                            terminal.scrollTop = terminal.scrollHeight;
+                        }
+                        lastLogId = latestLogId;
                     }
-                    lastLogsCount = data.logs.length;
                 }
 
                 // 3. Queue List
