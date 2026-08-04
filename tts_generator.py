@@ -168,6 +168,15 @@ NEDEN: [Kısaca nedeni]"""
                 raw_voice = override_voice if override_voice else self.config["voice"]
                 voice_name = raw_voice.split('-')[0].strip().lower()
                 
+                # API Health Okey Sinyali Gönder
+                try:
+                    import requests, os
+                    token = os.environ.get("TELEMETRY_TOKEN", "super_secret_kitapduy_token")
+                    url = "http://158.180.24.79:5000/api/telemetry/api_health"
+                    requests.post(url, headers={"Authorization": f"Bearer {token}"}, json={"index": account_manager.current_gemini_index, "status": "ok"}, timeout=2)
+                except:
+                    pass
+                
                 response = self.client.models.generate_content(
                     model="gemini-2.5-flash-preview-tts",
                     contents=text,
@@ -295,6 +304,16 @@ YANITIN SADECE JSON OLMALIDIR, BAŞKA HİÇBİR AÇIKLAMA YAZMA."""
                 error_str = str(e).lower()
                 if "429" in error_str or "quota" in error_str or "exhausted" in error_str or "403" in error_str or "permission_denied" in error_str:
                     print(f"  -> TTS Kotası doldu (veya Erişim Reddedildi)! Hesap değiştiriliyor... (Deneme {retry_count+1})")
+                    
+                    # API Health Hata Sinyali Gönder
+                    try:
+                        import requests, os
+                        token = os.environ.get("TELEMETRY_TOKEN", "super_secret_kitapduy_token")
+                        url = "http://158.180.24.79:5000/api/telemetry/api_health"
+                        requests.post(url, headers={"Authorization": f"Bearer {token}"}, json={"index": account_manager.current_gemini_index, "status": "429"}, timeout=2)
+                    except:
+                        pass
+                        
                     if account_manager.switch_gemini_account():
                         self.client = self.setup_gemini_client()
                         retry_count += 1

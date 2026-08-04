@@ -4,450 +4,452 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KitapDuy - Komuta Merkezi</title>
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-    <!-- FontAwesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --bg-dark: #09090b;
-            --bg-panel: #18181b;
-            --text-main: #f8fafc;
+            --bg: #0f172a;
+            --glass-bg: rgba(30, 41, 59, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --primary: #3b82f6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --text: #f8fafc;
             --text-muted: #94a3b8;
-            --neon-blue: #38bdf8;
-            --neon-purple: #818cf8;
-            --neon-green: #10b981;
-            --neon-red: #ef4444;
-            --glass-bg: rgba(24, 24, 27, 0.6);
-            --glass-border: rgba(255, 255, 255, 0.05);
         }
 
         body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Segoe UI', system-ui, sans-serif;
             margin: 0;
-            padding: 0;
-            background-color: var(--bg-dark);
+            padding: 20px;
             background-image: 
-                radial-gradient(circle at 15% 50%, rgba(56, 189, 248, 0.08), transparent 25%),
-                radial-gradient(circle at 85% 30%, rgba(129, 140, 248, 0.08), transparent 25%);
-            font-family: 'Inter', sans-serif;
-            color: var(--text-main);
+                radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.15) 0px, transparent 50%);
             min-height: 100vh;
         }
 
-        .navbar {
-            padding: 20px 40px;
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
             border-bottom: 1px solid var(--glass-border);
-            background: var(--glass-bg);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            position: sticky;
-            top: 0;
-            z-index: 100;
         }
 
-        .logo {
-            font-size: 24px;
-            font-weight: 800;
-            letter-spacing: 1px;
-            background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .logout-btn {
-            color: var(--text-muted);
-            text-decoration: none;
-            font-size: 14px;
-            transition: color 0.3s;
-        }
-
-        .logout-btn:hover {
-            color: var(--neon-red);
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 40px auto;
-            padding: 0 20px;
+        .grid {
             display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 24px;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
         }
 
-        @media (max-width: 900px) {
-            .container { grid-template-columns: 1fr; }
-        }
-
-        .panel {
+        .card {
             background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
             border: 1px solid var(--glass-border);
             border-radius: 16px;
             padding: 24px;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
         }
 
-        .panel-header {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
+        .card.span-2 { grid-column: span 2; }
+        .card.span-3 { grid-column: span 3; }
 
-        /* Status Indicator */
-        .status-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .status-active {
-            background: rgba(16, 185, 129, 0.1);
-            color: var(--neon-green);
-            border: 1px solid rgba(16, 185, 129, 0.2);
-        }
-
-        .status-idle {
-            background: rgba(239, 68, 68, 0.1);
-            color: var(--neon-red);
-            border: 1px solid rgba(239, 68, 68, 0.2);
-        }
-
-        .pulsing-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-        }
-
-        .status-active .pulsing-dot {
-            background: var(--neon-green);
-            box-shadow: 0 0 10px var(--neon-green);
-            animation: pulse 1.5s infinite;
-        }
-
-        .status-idle .pulsing-dot {
-            background: var(--neon-red);
-            box-shadow: 0 0 10px var(--neon-red);
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
-            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
-        }
-
-        /* Active Job Stats */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-top: 20px;
-        }
-
-        .stat-box {
-            background: rgba(0,0,0,0.2);
-            padding: 16px;
-            border-radius: 12px;
-            border: 1px solid rgba(255,255,255,0.02);
-        }
-
-        .stat-label {
-            font-size: 12px;
-            color: var(--text-muted);
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .stat-value {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 24px;
-            font-weight: 700;
-        }
+        h2 { margin-top: 0; font-size: 1.2rem; color: var(--primary); display: flex; align-items: center; gap: 8px; }
 
         /* Progress Bar */
         .progress-container {
-            margin-top: 30px;
-        }
-
-        .progress-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-            font-size: 14px;
-        }
-
-        .progress-bar-bg {
-            height: 8px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 4px;
+            background: rgba(0,0,0,0.5);
+            border-radius: 99px;
+            height: 24px;
             overflow: hidden;
+            margin: 15px 0;
             position: relative;
         }
-
-        .progress-bar-fill {
+        .progress-bar {
+            background: linear-gradient(90deg, var(--primary), var(--success));
             height: 100%;
-            background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple));
-            border-radius: 4px;
             width: 0%;
             transition: width 0.5s ease;
-            position: relative;
         }
-        
-        .progress-bar-fill::after {
-            content: "";
+        .progress-text {
             position: absolute;
-            top: 0;
-            left: 0;
-            bottom: 0;
-            right: 0;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-            transform: translateX(-100%);
-            animation: shimmer 2s infinite;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 0.85rem;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
         }
 
-        @keyframes shimmer {
-            100% { transform: translateX(100%); }
-        }
-
-        /* Actions Form */
+        /* Controls */
         .input-group {
-            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
         }
-
-        .input-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: var(--text-muted);
-            font-size: 13px;
-            text-transform: uppercase;
-        }
-
-        .input-field {
-            width: 100%;
-            padding: 12px 16px;
+        input {
+            flex: 1;
             background: rgba(0,0,0,0.3);
             border: 1px solid var(--glass-border);
-            border-radius: 8px;
             color: white;
-            font-family: 'JetBrains Mono', monospace;
-            box-sizing: border-box;
-            transition: border-color 0.3s;
-        }
-
-        .input-field:focus {
+            padding: 12px 16px;
+            border-radius: 8px;
             outline: none;
-            border-color: var(--neon-blue);
         }
-
-        .btn {
-            width: 100%;
-            padding: 14px;
-            background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple));
+        input:focus { border-color: var(--primary); }
+        button {
+            background: var(--primary);
             color: white;
             border: none;
+            padding: 12px 24px;
             border-radius: 8px;
-            font-weight: 600;
-            font-size: 15px;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        button:hover { background: #2563eb; transform: translateY(-1px); }
+        button:active { transform: translateY(1px); }
+
+        /* Terminal */
+        .terminal {
+            background: #000;
+            border-radius: 8px;
+            padding: 15px;
+            height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9rem;
+            color: #0f0;
+            border: 1px solid #333;
+        }
+        .term-line { margin: 4px 0; border-bottom: 1px dashed #111; padding-bottom: 2px; }
+        .term-time { color: #888; margin-right: 10px; }
+
+        /* API Grid */
+        .api-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
             gap: 10px;
+            margin-top: 15px;
         }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px -10px var(--neon-purple);
+        .api-node {
+            background: rgba(0,0,0,0.4);
+            border: 1px solid var(--glass-border);
+            border-radius: 6px;
+            padding: 10px;
+            text-align: center;
+            font-size: 0.8rem;
+            position: relative;
         }
-
-        .btn:active {
-            transform: translateY(0);
-        }
-
-        /* Loading Spinner */
-        .spinner {
-            display: none;
-            width: 20px;
-            height: 20px;
-            border: 2px solid rgba(255,255,255,0.3);
+        .status-dot {
+            height: 10px;
+            width: 10px;
             border-radius: 50%;
-            border-top-color: white;
-            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 5px;
+        }
+        .status-ok { background: var(--success); box-shadow: 0 0 8px var(--success); }
+        .status-429 { background: var(--warning); box-shadow: 0 0 8px var(--warning); }
+        .status-err { background: var(--danger); box-shadow: 0 0 8px var(--danger); }
+        .status-unknown { background: #555; }
+
+        /* Queue List */
+        .queue-list {
+            list-style: none;
+            padding: 0;
+            margin: 15px 0 0 0;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .queue-item {
+            background: rgba(0,0,0,0.3);
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+            border-left: 3px solid var(--primary);
+        }
+        .badge {
+            background: rgba(255,255,255,0.1);
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
         }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        /* Player */
+        .player-wrapper {
+            margin-top: 15px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
         }
+        audio { width: 100%; margin-top: 10px; }
 
+        @media (max-width: 1024px) {
+            .grid { grid-template-columns: 1fr; }
+            .card.span-2, .card.span-3 { grid-column: span 1; }
+        }
     </style>
 </head>
 <body>
-
-    <nav class="navbar">
-        <div class="logo">KİTAPDUY<span style="font-weight: 300; color: white; -webkit-text-fill-color: white;">/DASHBOARD</span></div>
-        <a href="/logout" class="logout-btn"><i class="fa-solid fa-power-off"></i> Çıkış Yap</a>
-    </nav>
-
     <div class="container">
-        <!-- Live Status Panel -->
-        <div class="panel">
-            <div class="panel-header" style="justify-content: space-between;">
-                <span><i class="fa-solid fa-satellite-dish"></i> Otonom Fabrika Durumu</span>
-                <div id="statusBadge" class="status-badge status-idle">
-                    <div class="pulsing-dot"></div>
-                    <span id="statusText">VERİ BEKLENİYOR</span>
-                </div>
+        <div class="header">
+            <div>
+                <h1 style="margin: 0; font-size: 1.8rem; display: flex; align-items: center; gap: 10px;">
+                    🎧 KitapDuy <span style="color: var(--primary)">Mega Fabrika</span>
+                </h1>
+                <p style="margin: 5px 0 0 0; color: var(--text-muted);">Sıfır Maliyetli Oracle Telemetri Altyapısı</p>
             </div>
-
-            <div style="font-size: 32px; font-weight: 800; margin: 20px 0 10px 0;" id="bookTitle">
-                Bağlanıyor...
-            </div>
-            <div style="color: var(--neon-blue); font-family: 'JetBrains Mono', monospace;" id="bookId">
-                ID: ---
-            </div>
-
-            <div class="stats-grid">
-                <div class="stat-box">
-                    <div class="stat-label">Bölüm (Parça)</div>
-                    <div class="stat-value" id="progressFractions">0 / 0</div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-label">Spiker / Ses</div>
-                    <div class="stat-value" id="voiceName" style="color: var(--neon-purple);">---</div>
-                </div>
-            </div>
-
-            <div class="progress-container">
-                <div class="progress-header">
-                    <span style="color: var(--text-muted);">Tamamlanma Oranı</span>
-                    <span id="progressPctText" style="font-weight: 600;">%0.0</span>
-                </div>
-                <div class="progress-bar-bg">
-                    <div class="progress-bar-fill" id="progressBar"></div>
-                </div>
-            </div>
-            
-            <div style="margin-top: 20px; font-size: 12px; color: var(--text-muted); text-align: right;">
-                Son Güncelleme: <span id="lastUpdate">Hiç</span>
-            </div>
+            <a href="/logout" style="color: var(--danger); text-decoration: none; padding: 8px 16px; border: 1px solid var(--danger); border-radius: 8px; transition: all 0.2s;">Sistemi Kilitle</a>
         </div>
 
-        <!-- Control Panel -->
-        <div class="panel">
-            <div class="panel-header">
-                <i class="fa-solid fa-terminal"></i> Manuel Tetikleyici
-            </div>
+        <div class="grid">
             
-            <p style="font-size: 13px; color: var(--text-muted); line-height: 1.6; margin-bottom: 20px;">
-                Yeni bir kitap başlatmak veya duran sistemi uyandırmak için buradan GitHub Actions'a direkt sinyal gönderebilirsiniz. Otonom mod için <b>auto</b> yazın.
-            </p>
+            <!-- CURRENT JOB -->
+            <div class="card span-2">
+                <h2>⚡ Canlı Üretim Durumu</h2>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <div>
+                        <div style="font-size: 1.4rem; font-weight: bold; margin-bottom: 5px;" id="book-title">Bekleniyor...</div>
+                        <div style="color: var(--text-muted); font-size: 0.9rem;" id="book-meta">Kitap ID: - | Spiker: -</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-size: 0.85rem; color: var(--text-muted);">Son Güncelleme</div>
+                        <div style="font-weight: bold; color: var(--success);" id="last-update">Sinyal Aranıyor</div>
+                    </div>
+                </div>
+                
+                <div class="progress-container">
+                    <div class="progress-bar" id="progress-bar"></div>
+                    <div class="progress-text" id="progress-text">%0 (0 / 0)</div>
+                </div>
 
-            <div class="input-group">
-                <label>Gutenberg ID veya Auto</label>
-                <input type="text" id="triggerBookId" class="input-field" placeholder="Örn: 1216 veya auto" value="auto">
+                <div class="input-group">
+                    <input type="text" id="bookInput" placeholder="Kitap ID girin (ör: 1216) veya Otonom Mod için 'auto' girin">
+                    <button onclick="triggerWorkflow()">🚀 Fabrikayı Başlat</button>
+                </div>
             </div>
 
-            <button class="btn" onclick="triggerWorkflow()" id="triggerBtn">
-                <i class="fa-solid fa-rocket" id="triggerIcon"></i>
-                <div class="spinner" id="triggerSpinner"></div>
-                <span>Fabrikayı Başlat</span>
-            </button>
-            
-            <div id="triggerResult" style="margin-top: 15px; font-size: 13px; text-align: center; display: none;"></div>
+            <!-- AUDIO PLAYER -->
+            <div class="card">
+                <h2>🎵 Canlı Önizleme (Son Bölüm)</h2>
+                <div class="player-wrapper">
+                    <div id="player-title" style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 10px;">Henüz ses yüklenmedi</div>
+                    <audio id="audio-player" controls>
+                        <source src="" type="audio/mpeg">
+                        Tarayıcınız ses öğesini desteklemiyor.
+                    </audio>
+                </div>
+                <div style="margin-top: 15px;">
+                    <h3 style="font-size: 1rem; margin: 0 0 10px 0;">Genel İstatistikler</h3>
+                    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1); padding: 5px 0;">
+                        <span style="color: var(--text-muted)">İşlenen Paragraf:</span>
+                        <strong id="stat-chunks">0</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TERMINAL -->
+            <div class="card span-2">
+                <h2>👨‍💻 Hacker Terminali (Canlı Loglar)</h2>
+                <div class="terminal" id="terminal">
+                    <!-- Logs will appear here -->
+                </div>
+            </div>
+
+            <!-- QUEUE -->
+            <div class="card">
+                <h2>📚 Üretim Kuyruğu</h2>
+                <div class="input-group" style="margin-top: 0; margin-bottom: 15px;">
+                    <input type="text" id="queueInput" placeholder="Kitap ID Ekle (Örn: 200)" style="padding: 8px;">
+                    <button onclick="addToQueue()" style="padding: 8px 16px;">Ekle</button>
+                </div>
+                <ul class="queue-list" id="queue-list">
+                    <li class="queue-item" style="justify-content: center; color: #555;">Kuyruk boş</li>
+                </ul>
+            </div>
+
+            <!-- API HEALTH -->
+            <div class="card span-3">
+                <h2>🔑 API Anahtarı Sağlık Haritası</h2>
+                <div class="api-grid" id="api-grid">
+                    <!-- Grid will be generated by JS -->
+                </div>
+            </div>
+
         </div>
     </div>
 
     <script>
-        function updateStatus() {
-            fetch('/api/status')
-                .then(res => res.json())
-                .then(data => {
-                    const badge = document.getElementById('statusBadge');
-                    const text = document.getElementById('statusText');
-                    
-                    if (data.is_active) {
-                        badge.className = 'status-badge status-active';
-                        text.innerText = 'ÜRETİMDE (CANLI)';
-                    } else {
-                        badge.className = 'status-badge status-idle';
-                        text.innerText = 'UYKUSUNDA / BEKLİYOR';
-                    }
-
-                    document.getElementById('bookTitle').innerText = data.book_title || "Bilinmiyor";
-                    document.getElementById('bookId').innerText = "ID: " + (data.book_id || "---");
-                    
-                    const current = data.current_chunk || 0;
-                    const total = data.total_chunks || 0;
-                    document.getElementById('progressFractions').innerText = `${current} / ${total}`;
-                    
-                    document.getElementById('voiceName').innerText = data.voice || "---";
-
-                    const pct = data.progress_pct || 0;
-                    document.getElementById('progressPctText').innerText = `%${pct.toFixed(1)}`;
-                    document.getElementById('progressBar').style.width = `${pct}%`;
-                    
-                    if (data.last_update) {
-                        const date = new Date(data.last_update * 1000);
-                        document.getElementById('lastUpdate').innerText = date.toLocaleTimeString('tr-TR');
-                    }
-                })
-                .catch(err => console.error(err));
+        // Init API Grid visually
+        const grid = document.getElementById("api-grid");
+        for (let i = 0; i < 25; i++) {
+            const node = document.createElement("div");
+            node.className = "api-node";
+            node.id = `api-node-${i}`;
+            node.innerHTML = `
+                <div style="display:flex; align-items:center; justify-content:center; margin-bottom: 5px;">
+                    <span class="status-dot status-unknown" id="api-dot-${i}"></span>
+                    <strong>Anahtar ${i+1}</strong>
+                </div>
+                <div style="color:var(--text-muted); font-size:0.7rem;" id="api-err-${i}">Hata: 0</div>
+            `;
+            grid.appendChild(node);
         }
 
-        function triggerWorkflow() {
-            const btn = document.getElementById('triggerBtn');
-            const icon = document.getElementById('triggerIcon');
-            const spinner = document.getElementById('triggerSpinner');
-            const resultDiv = document.getElementById('triggerResult');
-            const bookId = document.getElementById('triggerBookId').value;
+        let lastLogsCount = 0;
+        let isUserScrolling = false;
+        
+        const terminal = document.getElementById("terminal");
+        terminal.addEventListener("scroll", () => {
+            if (terminal.scrollTop + terminal.clientHeight < terminal.scrollHeight - 20) {
+                isUserScrolling = true;
+            } else {
+                isUserScrolling = false;
+            }
+        });
 
-            btn.disabled = true;
-            icon.style.display = 'none';
-            spinner.style.display = 'block';
-            resultDiv.style.display = 'none';
+        async function fetchDashboardData() {
+            try {
+                const response = await fetch('/api/dashboard_data');
+                const data = await response.json();
+                
+                // 1. Job Updates
+                if (data.job) {
+                    document.getElementById('book-title').innerText = data.job.book_title || "Bilinmiyor";
+                    document.getElementById('book-meta').innerText = `Kitap ID: ${data.job.book_id} | Spiker: ${data.job.voice}`;
+                    
+                    const pct = data.job.progress_pct || 0;
+                    document.getElementById('progress-bar').style.width = `${pct}%`;
+                    document.getElementById('progress-text').innerText = `%${pct.toFixed(1)} (${data.job.current_chunk} / ${data.job.total_chunks})`;
+                    
+                    const timeDiff = Math.floor((Date.now() / 1000) - data.job.last_update);
+                    document.getElementById('last-update').innerText = timeDiff < 60 ? `${timeDiff} sn önce` : `${Math.floor(timeDiff/60)} dk önce`;
 
-            fetch('/api/trigger', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ book_id: bookId })
-            })
-            .then(res => res.json())
-            .then(data => {
-                resultDiv.style.display = 'block';
-                if (data.success) {
-                    resultDiv.style.color = 'var(--neon-green)';
-                    resultDiv.innerHTML = '<i class="fa-solid fa-check-circle"></i> Sinyal başarıyla gönderildi! Makine 10-15 saniye içinde uyanacak.';
-                } else {
-                    resultDiv.style.color = 'var(--neon-red)';
-                    resultDiv.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Hata: ${data.error}`;
+                    // Audio Player
+                    const player = document.getElementById("audio-player");
+                    const pTitle = document.getElementById("player-title");
+                    if (data.job.latest_audio_url && player.src !== data.job.latest_audio_url) {
+                        player.src = data.job.latest_audio_url;
+                        pTitle.innerText = `${data.job.book_title} - Bölüm ${data.job.current_chunk}`;
+                    }
                 }
-            })
-            .finally(() => {
-                btn.disabled = false;
-                icon.style.display = 'block';
-                spinner.style.display = 'none';
-            });
+
+                // 2. Logs Terminal
+                if (data.logs.length > 0 && data.logs.length !== lastLogsCount) {
+                    terminal.innerHTML = data.logs.map(log => 
+                        `<div class="term-line"><span class="term-time">[${log.time}]</span> ${log.msg}</div>`
+                    ).join('');
+                    if (!isUserScrolling) {
+                        terminal.scrollTop = terminal.scrollHeight;
+                    }
+                    lastLogsCount = data.logs.length;
+                }
+
+                // 3. Queue List
+                const qList = document.getElementById("queue-list");
+                if (data.queue.length > 0) {
+                    qList.innerHTML = data.queue.map(q => 
+                        `<li class="queue-item">
+                            <span>📖 Kitap ID: <strong>${q.book_id}</strong></span>
+                            <span class="badge" style="color: ${q.status === 'processing' ? 'var(--warning)' : 'var(--text)'}">${q.status.toUpperCase()}</span>
+                        </li>`
+                    ).join('');
+                } else {
+                    qList.innerHTML = '<li class="queue-item" style="justify-content: center; color: #555;">Kuyruk boş</li>';
+                }
+
+                // 4. API Health
+                data.api_health.forEach(key => {
+                    const dot = document.getElementById(`api-dot-${key.index}`);
+                    const err = document.getElementById(`api-err-${key.index}`);
+                    if (dot && err) {
+                        dot.className = "status-dot";
+                        if (key.status === "ok") dot.classList.add("status-ok");
+                        else if (key.status === "429") dot.classList.add("status-429");
+                        else dot.classList.add("status-err");
+                        
+                        err.innerText = `Hata: ${key.errors}`;
+                    }
+                });
+
+                // 5. Stats
+                if (data.stats.total_chunks_processed) {
+                    document.getElementById("stat-chunks").innerText = data.stats.total_chunks_processed;
+                }
+
+            } catch (err) {
+                console.error("Dashboard veri çekme hatası:", err);
+                document.getElementById('last-update').innerText = "Bağlantı Koptu!";
+                document.getElementById('last-update').style.color = "var(--danger)";
+            }
         }
 
-        // Poll every 5 seconds
-        setInterval(updateStatus, 5000);
-        updateStatus();
+        async function triggerWorkflow() {
+            const bookId = document.getElementById('bookInput').value;
+            const btn = document.querySelector('.input-group button');
+            
+            if (!bookId) { alert('Lütfen Kitap ID veya "auto" girin'); return; }
+            
+            btn.disabled = true;
+            btn.innerText = "⏳ İstek Gönderiliyor...";
+            
+            try {
+                const response = await fetch('/api/trigger', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ book_id: bookId })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    alert('🚀 İşlem başarıyla tetiklendi! Terminal logları birazdan akmaya başlayacaktır.');
+                } else {
+                    alert('❌ Hata: ' + data.error);
+                }
+            } catch (err) {
+                alert('Bağlantı hatası!');
+            }
+            
+            btn.disabled = false;
+            btn.innerText = "🚀 Fabrikayı Başlat";
+        }
+
+        async function addToQueue() {
+            const input = document.getElementById('queueInput');
+            const bookId = input.value;
+            if (!bookId) return;
+
+            try {
+                const response = await fetch('/api/queue/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ book_id: bookId })
+                });
+                if (response.ok) {
+                    input.value = "";
+                    fetchDashboardData();
+                }
+            } catch (err) {
+                alert('Kuyruğa eklenemedi!');
+            }
+        }
+
+        // Poll every 3 seconds
+        setInterval(fetchDashboardData, 3000);
+        fetchDashboardData();
     </script>
 </body>
 </html>

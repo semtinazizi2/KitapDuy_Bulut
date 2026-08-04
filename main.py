@@ -4,29 +4,42 @@ from book_fetcher import BookFetcher
 from tts_generator import TTSGenerator
 from qa_checker import QAChecker
 from publisher import BookPublisher
+import requests
+import json
 
 GLOBAL_START_TIME = time.time()
+ORACLE_URL = "http://158.180.24.79:5000"
+TELEMETRY_TOKEN = os.environ.get("TELEMETRY_TOKEN", "super_secret_kitapduy_token")
 
-def update_telemetry(book_id, book_title, current_chunk, total_chunks, voice):
+import builtins
+
+def remote_print(*args, **kwargs):
+    msg = " ".join(str(a) for a in args)
+    builtins.print(msg)
     try:
-        import firebase_admin
-        from firebase_admin import firestore
-        from firebase_setup import get_firebase_cred
-        import time
-        if not firebase_admin._apps:
-            cred = get_firebase_cred()
-            firebase_admin.initialize_app(cred)
-        db = firestore.client()
+        headers = {"Authorization": f"Bearer {TELEMETRY_TOKEN}", "Content-Type": "application/json"}
+        requests.post(f"{ORACLE_URL}/api/telemetry/log", headers=headers, json={"message": msg}, timeout=3)
+    except:
+        pass
+
+print = remote_print
+
+def update_telemetry(book_id, book_title, current_chunk, total_chunks, voice, latest_audio_url=None):
+    try:
+        headers = {"Authorization": f"Bearer {TELEMETRY_TOKEN}", "Content-Type": "application/json"}
         pct = (current_chunk / total_chunks) * 100 if total_chunks > 0 else 0
-        db.collection("active_jobs").document("github_worker").set({
+        data = {
             "book_id": str(book_id),
             "book_title": str(book_title),
             "current_chunk": current_chunk,
             "total_chunks": total_chunks,
             "progress_pct": pct,
-            "voice": str(voice),
-            "last_update": time.time()
-        })
+            "voice": str(voice)
+        }
+        if latest_audio_url:
+            data["latest_audio_url"] = latest_audio_url
+            
+        requests.post(f"{ORACLE_URL}/api/telemetry/job", headers=headers, json=data, timeout=3)
     except Exception as e:
         pass # Ignore telemetry errors so it doesn't break the main loop
 
@@ -180,10 +193,6 @@ def process_book(book_source, mode):
         progress_pct = (i / total_paragraphs) * 100
         print(f"--- BÖLÜM {i+1} / {total_paragraphs} (%{progress_pct:.1f} Tamamlandı) ---")
         
-        # Telemetry update
-        voice_name = tts.config.get("voice", "Bilinmiyor")
-        update_telemetry(book_source, book_title, i+1, total_paragraphs, voice_name)
-        
         filename = f"bolum_{i+1:03d}.mp3"
         audio_path = os.path.join(book_output_dir, filename)
         
@@ -226,14 +235,27 @@ def process_book(book_source, mode):
             break
             
         # 3. Seslendirme (TTS)
-        # TTSGenerator'a art├âÔÇŞ├é┬▒k tam dosya yolunu veriyoruz
+        # TTSGenerator'a artık tam dosya yolunu veriyoruz
         final_audio_path = tts.generate_audio(director_script, audio_path)
         
-        if not final_audio_path: # Kotalar doldu├âÔÇŞ├à┬©u i├âãÆ├é┬ğin None d├âãÆ├é┬Ând├âãÆ├é┬╝yse
-            print("\n!!! D├âÔÇŞ├é┬░KKAT: Seslendirme (TTS) taraf├âÔÇŞ├é┬▒nda kotalar tamamen doldu !!!")
-            print("Yar├âÔÇŞ├é┬▒n sistemi tekrar ├âãÆ├é┬ğal├âÔÇŞ├é┬▒├âÔÇĞ├à┬©t├âÔÇŞ├é┬▒r├âÔÇŞ├é┬▒rsan├âÔÇŞ├é┬▒z, kald├âÔÇŞ├é┬▒├âÔÇŞ├à┬©├âÔÇŞ├é┬▒ bu b├âãÆ├é┬Âl├âãÆ├é┬╝mden otomatik olarak devam edecektir.")
+        if not final_audio_path: # Kotalar dolduğu için None döndüyse
+            print("\n!!! DİKKAT: Seslendirme (TTS) tarafında kotalar tamamen doldu !!!")
+            print("Yarın sistemi tekrar çalıştırırsanız, kaldığı bu bölümden otomatik olarak devam edecektir.")
             break
             
+        r2_preview_url = None
+        if final_audio_path:
+            try:
+                # Canlı önizleme için R2'ye yükle (Arkaplanda sessizce)
+                pub = BookPublisher(gemini_client=fetcher.client if hasattr(fetcher, 'client') else None)
+                r2_preview_url = pub.upload_to_r2(final_audio_path, f"live_preview/{book_folder_name}_{filename}")
+            except Exception as e:
+                print(f"[UYARI] Canlı önizleme yüklenemedi: {e}")
+            
+        # Telemetry update
+        voice_name = tts.config.get("voice", "Bilinmiyor")
+        update_telemetry(book_source, book_title, i+1, total_paragraphs, voice_name, latest_audio_url=r2_preview_url)
+        
         # 4. Kalite Kontrol (Opsiyonel)
         if ENABLE_QA and final_audio_path:
             success, msg = qa.check_audio_quality(final_audio_path, turkish_text)
@@ -384,7 +406,19 @@ def main():
         while True:
             import time
             if current_id is None:
-                current_id = fetcher_instance.get_random_gutenberg_id()
+                # 1. Oracle'dan kuyruğu kontrol et
+                try:
+                    headers = {"Authorization": f"Bearer {TELEMETRY_TOKEN}"}
+                    r = requests.post(f"{ORACLE_URL}/api/telemetry/queue/pop", headers=headers, timeout=5)
+                    if r.status_code == 200 and r.json().get("book_id"):
+                        current_id = r.json()["book_id"]
+                        print(f"\n[KUYRUK] Kullanıcının eklediği kitap kuyruktan çekildi: {current_id}")
+                except Exception as e:
+                    print(f"[UYARI] Kuyruk kontrol edilemedi: {e}")
+                    
+                # 2. Kuyruk boşsa rastgele devam et
+                if not current_id:
+                    current_id = fetcher_instance.get_random_gutenberg_id()
                 
             success = process_book(current_id, mode)
             
