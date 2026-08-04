@@ -255,7 +255,8 @@ def process_book(book_source, mode):
             try:
                 # Canlı önizleme için R2'ye yükle (Arkaplanda sessizce)
                 pub = BookPublisher(gemini_client=fetcher.client if hasattr(fetcher, 'client') else None)
-                r2_preview_url = pub.upload_to_r2(final_audio_path, f"live_preview/{book_folder_name}_{filename}")
+                # r2_preview_url = pub.upload_to_r2(final_audio_path, f"live_preview/{book_folder_name}_{filename}")
+                print("[BİLGİ] Canlı önizleme (Live Preview) kapatıldı, atlanıyor...")
             except Exception as e:
                 print(f"[UYARI] Canlı önizleme yüklenemedi: {e}")
             
