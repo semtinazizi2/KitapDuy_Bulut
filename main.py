@@ -193,6 +193,13 @@ def process_book(book_source, mode):
         progress_pct = (i / total_paragraphs) * 100
         print(f"--- BÖLÜM {i+1} / {total_paragraphs} (%{progress_pct:.1f} Tamamlandı) ---")
         
+        # UI'a Anında Bildir
+        try:
+            voice_name = tts.config.get("voice", "Bilinmiyor")
+            update_telemetry(book_source, book_title, i+1, total_paragraphs, voice_name)
+        except:
+            pass
+        
         filename = f"bolum_{i+1:03d}.mp3"
         audio_path = os.path.join(book_output_dir, filename)
         
