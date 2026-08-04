@@ -423,7 +423,6 @@ YANITIN SADECE JSON OLMALIDIR, BAŞKA HİÇBİR AÇIKLAMA YAZMA."""
                             break
                         else:
                             print(f"  -> [AI QA] REDDEDİLDİ: {reason}. Parça baştan okunuyor...")
-                            import time
                             time.sleep(2)
                             
                     # Eğer 3 denemede de geçemezse (veya temp_bytes varsa) son üretileni kullanır
