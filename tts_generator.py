@@ -222,7 +222,7 @@ Metin:
         
         retry_count = 0
         internal_error_count = 0
-        while retry_count < 50:
+        while retry_count < 1000:
             try:
                 # Dinamik ses seçimi ve isim temizliği (Sadece küçük harf ve ilk kelime)
                 raw_voice = override_voice if override_voice else self.config["voice"]
@@ -396,8 +396,19 @@ YANITIN SADECE JSON OLMALIDIR, BAŞKA HİÇBİR AÇIKLAMA YAZMA."""
                         print(f"  -> [UYARI] TTS bu metni telif (Recitation/finish_reason: 8) veya içerik engeli nedeniyle seslendirmedi (<SKIP>).")
                         return b""
                         
-                    print(f"  -> TTS Hatası: {e}")
-                    time.sleep(5)
+                    if "500" in error_str or "internal" in error_str:
+                        internal_error_count += 1
+                        print(f"  -> TTS Hatası: 500 INTERNAL (Deneme {internal_error_count}). Google sunucuları meşgul, 10 saniye bekleniyor...")
+                        time.sleep(10)
+                        if internal_error_count >= 3:
+                            print(f"  -> Aynı hesapta üst üste 3 kez 500 Hatası alındı. Hesap değiştiriliyor...")
+                            internal_error_count = 0
+                            if account_manager.switch_gemini_account():
+                                self.client = self.setup_gemini_client()
+                            retry_count += 1
+                    else:
+                        print(f"  -> TTS Hatası: {e}")
+                        time.sleep(5)
                     retry_count += 1
                     continue
         raise Exception("Çok fazla TTS hatası alındı, parça atlanıyor.")
@@ -440,7 +451,7 @@ YANITIN SADECE JSON OLMALIDIR, BAŞKA HİÇBİR AÇIKLAMA YAZMA."""
             current_chunk = ""
             chunks = []
             for sentence in sentences:
-                if len(current_chunk) + len(sentence) < 1400:
+                if len(current_chunk) + len(sentence) < 15000:
                     current_chunk += sentence + " "
                 else:
                     if current_chunk:
