@@ -399,11 +399,6 @@ YANITIN SADECE JSON OLMALIDIR, BAŞKA HİÇBİR AÇIKLAMA YAZMA."""
                     print(f"  -> TTS Hatası: {e}")
                     time.sleep(5)
                     retry_count += 1
-                    if "500" in error_str:
-                        internal_error_count += 1
-                        if internal_error_count > 3:
-                            print("  -> [UYARI] 500 INTERNAL hatasi kalici (cursed text). Bu metin parcasi atlanacak.")
-                            return b""
                     continue
         raise Exception("Çok fazla TTS hatası alındı, parça atlanıyor.")
 
