@@ -380,7 +380,7 @@ YANITIN SADECE JSON OLMALIDIR, BAŞKA HİÇBİR AÇIKLAMA YAZMA."""
             current_chunk = ""
             chunks = []
             for sentence in sentences:
-                if len(current_chunk) + len(sentence) < 5000:
+                if len(current_chunk) + len(sentence) < 1400:
                     current_chunk += sentence + " "
                 else:
                     if current_chunk:
