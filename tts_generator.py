@@ -181,6 +181,7 @@ class TTSGenerator:
         text = self._inject_natural_pauses(text)
         
         retry_count = 0
+        internal_error_count = 0
         while retry_count < 50:
             try:
                 # Dinamik ses seçimi ve isim temizliği (Sadece küçük harf ve ilk kelime)
@@ -358,9 +359,11 @@ YANITIN SADECE JSON OLMALIDIR, BAŞKA HİÇBİR AÇIKLAMA YAZMA."""
                     print(f"  -> TTS Hatası: {e}")
                     time.sleep(5)
                     retry_count += 1
-                    if "500" in error_str and retry_count > 3:
-                        print("  -> [UYARI] 500 INTERNAL hatasi kalici (cursed text). Bu metin parcasi atlanacak.")
-                        return b""
+                    if "500" in error_str:
+                        internal_error_count += 1
+                        if internal_error_count > 3:
+                            print("  -> [UYARI] 500 INTERNAL hatasi kalici (cursed text). Bu metin parcasi atlanacak.")
+                            return b""
                     continue
         raise Exception("Çok fazla TTS hatası alındı, parça atlanıyor.")
 
