@@ -467,7 +467,8 @@ YANITIN SADECE JSON OLMALIDIR, BAŞKA HİÇBİR AÇIKLAMA YAZMA."""
             if rms < 500:
                 print("UYARI: Model boş bir ses üretti. Tekrar deneniyor...")
                 time.sleep(2)
-                return self.generate_audio(director_script, output_filename)
+                # return self.generate_audio(director_script, output_filename) # DISABLED TO PREVENT INFINITE LOOP ON CURSED TEXT
+                pass
                 
             # KAYIP CÜMLE DEDEKTÖRÜ (Süre / Metin Uzunluğu Doğrulaması)
             # director_script yönetmen notu içerdiği için çok uzun olabilir.
@@ -480,7 +481,8 @@ YANITIN SADECE JSON OLMALIDIR, BAŞKA HİÇBİR AÇIKLAMA YAZMA."""
                 print(f"[QA HATA] Kayıp Cümle Tespit Edildi! (Beklenen min: {min_expected_duration:.1f}s, Gelen: {duration:.1f}s)")
                 print("Spiker cümleyi yutmuş veya çok hızlı geçmiş. Tekrar üretiliyor (Retake)...")
                 time.sleep(2)
-                return self.generate_audio(director_script, output_filename)
+                # return self.generate_audio(director_script, output_filename) # DISABLED TO PREVENT INFINITE LOOP ON CURSED TEXT
+                pass
                 
             # --- AUDIBLE STANDARD: STÜDYO MASTERING ---
             # --- AUDIBLE STANDARD: STÜDYO MASTERING ---
