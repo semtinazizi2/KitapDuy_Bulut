@@ -140,6 +140,8 @@ class TTSGenerator:
                     retry_count += 1
                     continue
                     
+                if resp.status_code != 200:
+                    print(f"  -> [GROQ API YANITI] HATA DETAYI: {resp.text}")
                 resp.raise_for_status()
                 result = resp.json()
                 transcribed_text = result.get('text', '').strip()
@@ -238,9 +240,10 @@ Metin:
                     pass
                 
                 response = self.client.models.generate_content(
-                    model="gemini-3.1-flash-tts-preview",
+                    model="gemini-2.5-flash-preview-tts",
                     contents=text,
                                         config=types.GenerateContentConfig(
+                        system_instruction="You are an award-winning, professional audiobook narrator. Read the following text with perfect diction, natural pacing, a subtle emotional resonance, and high-quality studio delivery. Do not add any extra words; simply perform the text provided.",
                         response_modalities=["AUDIO"],
                         safety_settings=[
                             types.SafetySetting(category="HARM_CATEGORY_HATE_SPEECH", threshold="BLOCK_NONE"),
