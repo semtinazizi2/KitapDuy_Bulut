@@ -491,8 +491,8 @@ YANITIN SADECE JSON OLMALIDIR, BAŞKA HİÇBİR AÇIKLAMA YAZMA."""
                                 
                             # Yapay Zeka Yönetmen (AI QA) Kontrolü
                             print(f"  -> [GROQ QA] Ses Groq Whisper ile analiz ediliyor... (Deneme {attempt+1}/{max_qa_retries})")
-                            # is_passed, reason = self._ai_qa_check(temp_bytes, chunk.strip())
-                            is_passed, reason = self._ai_qa_check(temp_bytes, chunk.strip())
+                            # import io; from pydub import AudioSegment; test_seg = AudioSegment(data=temp_bytes, sample_width=2, frame_rate=24000, channels=1); test_io = io.BytesIO(); test_seg.export(test_io, format=" wav); is_passed, reason = self._ai_qa_check(test_io.getvalue(), chunk.strip())
+                            import io; from pydub import AudioSegment; test_seg = AudioSegment(data=temp_bytes, sample_width=2, frame_rate=24000, channels=1); test_io = io.BytesIO(); test_seg.export(test_io, format=" wav); is_passed, reason = self._ai_qa_check(test_io.getvalue(), chunk.strip())
                             
                             if is_passed:
                                 print(f"  -> [AI QA] ONAYLANDI: {reason}")
