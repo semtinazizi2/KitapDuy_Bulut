@@ -241,7 +241,6 @@ Metin:
                     model="gemini-3.1-flash-tts-preview",
                     contents=text,
                                         config=types.GenerateContentConfig(
-                        system_instruction="You are an award-winning, professional audiobook narrator. Read the following text with perfect diction, natural pacing, a subtle emotional resonance, and high-quality studio delivery. Do not add any extra words; simply perform the text provided.",
                         response_modalities=["AUDIO"],
                         safety_settings=[
                             types.SafetySetting(category="HARM_CATEGORY_HATE_SPEECH", threshold="BLOCK_NONE"),
