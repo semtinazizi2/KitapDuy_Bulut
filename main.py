@@ -251,15 +251,7 @@ def process_book(book_source, mode):
             break
             
         r2_preview_url = None
-        if final_audio_path:
-            try:
-                # Canlı önizleme için R2'ye yükle (Arkaplanda sessizce)
-                pub = BookPublisher(gemini_client=fetcher.client if hasattr(fetcher, 'client') else None)
-                # r2_preview_url = pub.upload_to_r2(final_audio_path, f"live_preview/{book_folder_name}_{filename}")
-                print("[BİLGİ] Canlı önizleme (Live Preview) kapatıldı, atlanıyor...")
-            except Exception as e:
-                print(f"[UYARI] Canlı önizleme yüklenemedi: {e}")
-            
+
         # Telemetry update
         voice_name = tts.config.get("voice", "Bilinmiyor")
         update_telemetry(book_source, book_title, i+1, total_paragraphs, voice_name, latest_audio_url=r2_preview_url)
