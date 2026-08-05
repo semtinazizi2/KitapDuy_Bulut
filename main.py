@@ -185,7 +185,7 @@ def process_book(book_source, mode):
     start_time = GLOBAL_START_TIME
     for i, p in enumerate(paragraphs):
         # 6 SAAT T├ä┬░MER KONTROL├â┼ô (G├ä┬░THUB ACT├ä┬░ONS F├ä┬░├à┬Ş ├âÔÇíEKMEDEN KA├âÔÇíI├à┬Ş)
-        if time.time() - start_time > (5 * 3600 + 45 * 60):  # 5 saat 45 dakika
+        if time.time() - start_time > (5 * 3600 + 30 * 60):  # 5 saat 30 dakika
             print("\n!!! D├ä┬░KKAT: GitHub'├ä┬▒n 6 saatlik maksimum s├â┬╝resine yakla├à┼©├ä┬▒ld├ä┬▒! !!!")
             print("Sistem fi├à┼© ├â┬ğekilmeden ├â┬Ânce uyan├ä┬▒yor, verileri G├â┼ôVENLE kasaya kaydedip uykuya ge├â┬ğiyor.")
             print("L├â┬╝tfen g├â┬Ârevi (Run workflow) tekrar ba├à┼©latarak kald├ä┬▒├ä┼©├ä┬▒ yerden devam ediniz.")
@@ -369,7 +369,7 @@ def main():
                     print("Uyku sirasinda 6 saat limiti yaklasirsa uyanip gucunu yeni sunucuya devredecek.")
                     
                     for _ in range(60):
-                        if time.time() - GLOBAL_START_TIME > (5 * 3600 + 45 * 60):
+                        if time.time() - GLOBAL_START_TIME > (5 * 3600 + 30 * 60):
                             print("\n!!! DIKKAT: Uyku sirasinda 6 saatlik limite ulasildi!")
                             print("[HAFIZA] Tum sesler GitHub Cache kasasina kilitlenecek.")
                             print("[SONSUZ DONGU] Kendi kendini yeniden tetikliyor...")
@@ -431,7 +431,7 @@ def main():
                     print("Uyku sirasinda 6 saat limiti yaklasirsa uyanip gucunu yeni sunucuya devredecek.")
                     
                     for _ in range(60):
-                        if time.time() - GLOBAL_START_TIME > (5 * 3600 + 45 * 60):
+                        if time.time() - GLOBAL_START_TIME > (5 * 3600 + 30 * 60):
                             print("\n!!! DIKKAT: Uyku sirasinda 6 saatlik limite ulasildi!")
                             print("[HAFIZA] Tum sesler GitHub Cache kasasina kilitlenecek.")
                             print("[SONSUZ DONGU] Kendi kendini yeniden tetikliyor...")
