@@ -238,7 +238,7 @@ Metin:
                     pass
                 
                 response = self.client.models.generate_content(
-                    model="gemini-2.5-flash-preview-tts",
+                    model="gemini-3.1-flash-tts-preview",
                     contents=text,
                                         config=types.GenerateContentConfig(
                         system_instruction="You are an award-winning, professional audiobook narrator. Read the following text with perfect diction, natural pacing, a subtle emotional resonance, and high-quality studio delivery. Do not add any extra words; simply perform the text provided.",
