@@ -363,7 +363,7 @@ YANITIN SADECE JSON OLMALIDIR, BAŞKA HİÇBİR AÇIKLAMA YAZMA."""
             except Exception as e:
                 error_str = str(e).lower()
                 if "429" in error_str or "quota" in error_str or "exhausted" in error_str or "403" in error_str or "permission_denied" in error_str:
-                    print(f"  -> TTS Kotası doldu (veya Erişim Reddedildi)! Hesap değiştiriliyor... (Deneme {retry_count+1})")
+                    print(f"  -> [GERÇEK HATA]: {e}\n  -> TTS Kotası doldu (veya Erişim Reddedildi)! Hesap değiştiriliyor... (Deneme {retry_count+1})")
                     
                     # API Health Hata Sinyali Gönder
                     try:
