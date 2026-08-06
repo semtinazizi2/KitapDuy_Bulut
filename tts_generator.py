@@ -212,9 +212,6 @@ Metin:
                 return True
             except Exception as e:
                 groq_account_manager.switch_groq_account()
-                retry_count += 1
-        return True
-
     def _call_tts_api(self, text, override_voice=None, is_retake=False):
         """Gemini TTS API'sini doğrudan çağırır."""
         # TTS API'ye gitmeden önce telaffuz hatalarını sözlükten düzelt
@@ -224,6 +221,22 @@ Metin:
         
         retry_count = 0
         internal_error_count = 0
+        
+        # Harika Fikir: Aynı API anahtarında farklı modellerin farklı kotaları (PerProjectPerModel) olabilir!
+        # Eğer model yoksa (404/400) veya kotası dolduysa (429), listedeki diğer modele geçer.
+        # Tümü bitince diğer API anahtarına geçer.
+        if not hasattr(self, 'current_tts_model_idx'):
+            self.current_tts_model_idx = 0
+            
+        TTS_MODELS = [
+            "gemini-3.1-flash-tts-preview",
+            "gemini-3.1-flash-tts",
+            "gemini-3.0-flash-tts-preview",
+            "gemini-3.0-flash-tts",
+            "gemini-2.5-flash-tts-preview",
+            "gemini-2.5-flash-tts"
+        ]
+
         while retry_count < 1000:
             import time
             import os
@@ -245,14 +258,16 @@ Metin:
                 except:
                     pass
                 
+                current_model_name = TTS_MODELS[self.current_tts_model_idx]
+                
                 response = self.client.models.generate_content(
-                    model="gemini-3.1-flash-tts-preview",
+                    model=current_model_name,
                     contents=text,
-                                        config=types.GenerateContentConfig(
+                    config=types.GenerateContentConfig(
                         response_modalities=["AUDIO"],
                         safety_settings=[
-                            types.SafetySetting(category="HARM_CATEGORY_HATE_SPEECH", threshold="BLOCK_NONE"),
                             types.SafetySetting(category="HARM_CATEGORY_HARASSMENT", threshold="BLOCK_NONE"),
+                            types.SafetySetting(category="HARM_CATEGORY_HATE_SPEECH", threshold="BLOCK_NONE"),
                             types.SafetySetting(category="HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold="BLOCK_NONE"),
                             types.SafetySetting(category="HARM_CATEGORY_DANGEROUS_CONTENT", threshold="BLOCK_NONE"),
                         ],
@@ -276,45 +291,28 @@ Metin:
                 # OTONOM SES DENETMENİ (AUTO-HEALER QA AGENT)
                 # -----------------------------------------------------
                 if not is_retake and len(audio_data) > 0:
-                    print("  -> Üretildi. Oto-Denetmen dinleyip hata kontrolü yapıyor...")
+                    print(f"  -> Üretildi ({current_model_name}). Oto-Denetmen dinleyip hata kontrolü yapıyor...")
                     import io
                     from pydub import AudioSegment
                     temp_seg = AudioSegment(data=audio_data, sample_width=2, frame_rate=24000, channels=1)
                     wav_io = io.BytesIO()
                     temp_seg.export(wav_io, format="wav")
-                    valid_wav_bytes = wav_io.getvalue()
                     
                     try:
-                        qa_prompt = f"""Sen TRT (Türkiye Radyo Televizyon Kurumu) standartlarında, kusursuz Türkçe arayan, son derece titiz ve acımasız bir Baş Diksiyon ve Ses Uzmanısın.
-GÖREV: Ekteki yapay zeka ses kaydını (TTS) dikkatle dinle. Spikerin eksiksiz ve net bir şekilde okuması GEREKEN metin tam olarak şudur:
+                        qa_prompt = f"""Sen TRT standartlarında, kusursuz Türkçe arayan bir Baş Diksiyon ve Ses Uzmanısın.
+GÖREV: Ekteki yapay zeka ses kaydını (TTS) dinle. Okunması GEREKEN metin:
 "{text}"
 
-KURAL VE HATA KATEGORİLERİ (TÜRKÇE DİKSİYON STANDARTLARI):
-Spikeri şu hata türlerine karşı milisaniyesine kadar denetle:
-1. Şiveli Uzatmalar (En Yaygın Hata): Kısa okunması gereken A, E, İ gibi harfleri amerikan aksanı veya yöresel şiveyle gereksiz uzatmak (Örn: "yarın" -> "yaaarın", "hayır" -> "haayır", "geldi" -> "geeeldi").
-2. Harf/Hece Yutma ve Robotik Kesilme: Kelimenin veya eklerin sonunu kesmek, yutmak (Örn: "geliyordu" -> "geliyodu" veya "geliy..."). R harflerini yutmak.
-3. Yumuşak G (Ğ) Hatası: "Ğ" harfini sert bir "G" gibi veya gırtlaktan hırlayarak okumak. (Doğrusu: Önceki ünlü harfi yarım ses uzatmaktır, ağaç -> aaç).
-4. İnceltme ve Uzatma Çarpıtmaları: Şapkalı (^) okunması gereken kelimeleri düz okumak (kâr -> kar, hâlâ -> hala) veya düz kelimeleri şapkalı okumak.
-5. Harf Kaymaları: Telaffuzu zor kelimelerde harf değiştirmek (Örn: "hafızası" -> "hafıtası").
-6. Yabancı Aksan: Türkçe kelimeleri İngilizce/Amerikan aksanıyla, mekanik ve ruhsuz okumak.
-
-AKSİYON:
-Eğer spiker metindeki BİR KELİMEYİ BİLE yukarıdaki hatalardan biriyle (tek bir harf bile olsa) bozuk okuduysa, KESİNLİKLE affetme! Sesi reddet.
-SADECE hatalı okunan kelimeyi ve yapay zeka motorunun dilinin dolanmayacağı, okuması ÇOK DAHA KOLAY, fonetik veya risksiz bir eşanlamlısını JSON olarak dön.
+Eğer spiker metni BİR KELİMEYİ BİLE şiveli, hatalı veya bozuk okuduysa, KESİNLİKLE affetme!
+SADECE hatalı okunan kelimeyi ve okuması ÇOK DAHA KOLAY, fonetik veya risksiz bir eşanlamlısını JSON olarak dön.
 Format: {{"hatali_kelime": "okunusu_garanti_esanlamlisi"}}
-Örnek 1 (Hece yutma): {{"hafızası": "belleği"}}
-Örnek 2 (Şiveli Uzatma): {{"yarın": "ertesi gün"}} veya {{"yarın": "ya rın"}}
-Örnek 3 (Düzeltilemeyen özel isim): {{"abiye": "gece elbisesi"}}
-Örnek 4 (Yapay Zeka Halüsinasyonu): {{"biçimsiz": "şekilsiz"}}
-Örnek 5 (Şapkasız okunan sert ses): {{"rüzgar": "rüzgâr"}}
-
-Eğer ses harfi harfine, muazzam bir diksiyon ve akıcılıkla okunduysa SADECE boş JSON dön: {{}}
+Eğer okuma kusursuzsa SADECE boş JSON dön: {{}}
 YANITIN SADECE JSON OLMALIDIR, BAŞKA HİÇBİR AÇIKLAMA YAZMA."""
 
                         qa_response = self.client.models.generate_content(
-                            model="gemini-3.5-flash-lite",  # Yüksek ücretsiz kotaya sahip hızlı model
+                            model="gemini-3.5-flash-lite",
                             contents=[
-                                types.Part.from_bytes(data=valid_wav_bytes, mime_type="audio/wav"),
+                                types.Part.from_bytes(data=wav_io.getvalue(), mime_type="audio/wav"),
                                 qa_prompt
                             ]
                         )
@@ -325,35 +323,18 @@ YANITIN SADECE JSON OLMALIDIR, BAŞKA HİÇBİR AÇIKLAMA YAZMA."""
                         elif qa_result.startswith("```"):
                             qa_result = qa_result[3:-3].strip()
                             
-                        qa_dict = json.loads(qa_result)
-                        if qa_dict and isinstance(qa_dict, dict):
-                            wrong_word = list(qa_dict.keys())[0]
-                            correct_word = str(qa_dict[wrong_word])
-
-                            # SAĞLIK KONTROLÜ: QA bazen saçma sonuçlar üretir.
-                            # Eğer yakalanan "kelime" 50 karakterden uzunsa veya aynı kelimeyi
-                            # tekrar ediyorsa ("sin sin sin..." gibi), bu bir QA halüsinasyonudur.
-                            words_in_wrong = wrong_word.split()
-                            is_absurd = (
-                                len(wrong_word) > 60 or  # Çok uzun
-                                (len(words_in_wrong) > 3 and len(set(words_in_wrong)) <= 2)  # Tekrarlayan
-                            )
-
-                            if is_absurd:
-                                print(f"  -> [OTO-DENETMEN] Saçma QA sonucu atlandı (tekrarlayan/çok uzun kelime). Ses kabul edildi.")
-                            elif wrong_word and correct_word and wrong_word.lower() in text.lower():
-                                print(f"  -> [OTO-DENETMEN HATA BULDU!] '{wrong_word[:40]}' kelimesi hatalı okundu.")
-                                print(f"  -> Sözlüğe ekleniyor: {wrong_word[:40]} -> {correct_word}")
-                                
-                                # Sözlüğü güncelle
-                                self.pronunciation_dict[wrong_word] = correct_word
-                                dict_path = "pronunciation_dict.json"
-                                with open(dict_path, "w", encoding="utf-8") as f:
-                                    json.dump(self.pronunciation_dict, f, indent=4, ensure_ascii=False)
-                                    
-                                # Retake (Düzeltilmiş metinle tekrar çekim yap)
-                                print("  -> Düzeltilmiş yeni kural ile ses YENİDEN (Retake) üretiliyor...")
-                                return self._call_tts_api(text, override_voice, is_retake=True)
+                        if len(qa_result) > 2 and "{" in qa_result:
+                            import json
+                            try:
+                                qa_dict = json.loads(qa_result)
+                                if len(qa_dict) > 0:
+                                    print(f"  -> [DİKSİYON HATASI] Oto-Denetmen reddetti! Hatalı kelime: {qa_dict}")
+                                    for bad_word, better_word in qa_dict.items():
+                                        text = text.replace(bad_word, better_word)
+                                    print("  -> Metin iyileştirildi, tekrar üretiliyor (Retake)...")
+                                    return self._call_tts_api(text, override_voice, is_retake=True)
+                            except:
+                                pass
                     except Exception as qa_err:
                         pass # QA hatası üretimi durdurmasın
 
@@ -361,7 +342,12 @@ YANITIN SADECE JSON OLMALIDIR, BAŞKA HİÇBİR AÇIKLAMA YAZMA."""
                 # OTO-DENETMEN STT (SPEECH-TO-TEXT) KONTROLÜ
                 # -----------------------------------------------------
                 if not is_retake and len(audio_data) > 0:
-                    is_valid, stt_msg = self.qa_checker.check_audio_stt(valid_wav_bytes, text)
+                    import io
+                    from pydub import AudioSegment
+                    temp_seg = AudioSegment(data=audio_data, sample_width=2, frame_rate=24000, channels=1)
+                    wav_io = io.BytesIO()
+                    temp_seg.export(wav_io, format="wav")
+                    is_valid, stt_msg = self.qa_checker.check_audio_stt(wav_io.getvalue(), text)
                     if not is_valid:
                         print("  -> [STT RETAKE] Ses metinle uyuşmuyor, yeniden (Retake) üretiliyor...")
                         return self._call_tts_api(text, override_voice, is_retake=True)
@@ -369,8 +355,20 @@ YANITIN SADECE JSON OLMALIDIR, BAŞKA HİÇBİR AÇIKLAMA YAZMA."""
                 return audio_data
             except Exception as e:
                 error_str = str(e).lower()
+                # 404 (Not Found) veya invalid_argument, modelin mevcut olmadığını gösterir.
+                if "404" in error_str or "not found" in error_str or "invalid" in error_str or "not support" in error_str:
+                    print(f"  -> [ATLA] Model '{current_model_name}' desteklenmiyor veya yok. Diğer modele geçiliyor...")
+                    self.current_tts_model_idx += 1
+                    if self.current_tts_model_idx >= len(TTS_MODELS):
+                        print("  -> Bu hesaptaki tüm TTS modelleri bitti. Sonraki hesaba geçiliyor...")
+                        self.current_tts_model_idx = 0
+                        if account_manager.switch_gemini_account():
+                            self.client = self.setup_gemini_client()
+                        retry_count += 1
+                    continue
+                    
                 if "429" in error_str or "quota" in error_str or "exhausted" in error_str or "403" in error_str or "permission_denied" in error_str:
-                    print(f"  -> [GERÇEK HATA]: {e}\n  -> TTS Kotası doldu (veya Erişim Reddedildi)! Hesap değiştiriliyor... (Deneme {retry_count+1})")
+                    print(f"  -> [KOTA DOLDU]: Model '{current_model_name}' için limit bitti! Diğer modele geçiliyor... (Deneme {retry_count+1})")
                     
                     # API Health Hata Sinyali Gönder
                     try:
@@ -381,40 +379,51 @@ YANITIN SADECE JSON OLMALIDIR, BAŞKA HİÇBİR AÇIKLAMA YAZMA."""
                     except:
                         pass
                         
-                    if account_manager.switch_gemini_account():
-                        self.client = self.setup_gemini_client()
-                        retry_count += 1
-                        
-                        num_keys = len(account_manager.gemini_keys)
-                        if num_keys > 0 and retry_count % num_keys == 0:
-                            print(f"  -> Tüm {num_keys} hesabın dakikalık kotası doldu. Kotaların yenilenmesi için 60 saniye bekleniyor...")
-                            time.sleep(60)
-                        else:
-                            time.sleep(2)
+                    self.current_tts_model_idx += 1
+                    if self.current_tts_model_idx >= len(TTS_MODELS):
+                        print("  -> Bu hesaptaki tüm TTS modellerinin kotası doldu! Yeni API hesabına geçiliyor...")
+                        self.current_tts_model_idx = 0
+                        if account_manager.switch_gemini_account():
+                            self.client = self.setup_gemini_client()
+                            retry_count += 1
                             
-                        continue
+                            num_keys = len(account_manager.gemini_keys)
+                            if num_keys > 0 and retry_count % num_keys == 0:
+                                print(f"  -> Tüm {num_keys} hesabın tüm modelleri tükendi. 60 saniye bekleniyor...")
+                                time.sleep(60)
+                            else:
+                                time.sleep(2)
+                                
+                            continue
+                        else:
+                            print("  -> Tüm hesapların kotası kalıcı olarak doldu, 30sn bekleniyor...")
+                            time.sleep(30)
+                            retry_count += 1
+                            continue
                     else:
-                        print("  -> Tüm hesapların kotası kalıcı olarak doldu, 30sn bekleniyor...")
-                        time.sleep(30)
-                        retry_count += 1
+                        # Aynı hesapta diğer modele geçtik, biraz bekle
+                        time.sleep(2)
                         continue
                 else:
                     if "prohibited_content" in error_str or "candidates is empty" in error_str or "blocked prompt" in error_str or "finish_reason" in error_str or "recitation" in error_str or "valid part" in error_str or "finish_reason is 8" in error_str:
                         print(f"  -> [UYARI] TTS bu metni telif (Recitation/finish_reason: 8) veya içerik engeli nedeniyle seslendirmedi (<SKIP>).")
                         return b""
                         
-                    if "500" in error_str or "internal" in error_str:
+                    if "500" in error_str or "internal" in error_str or "503" in error_str or "unavailable" in error_str:
                         internal_error_count += 1
-                        print(f"  -> TTS Hatası: 500 INTERNAL (Deneme {internal_error_count}). Google sunucuları meşgul, 10 saniye bekleniyor...")
+                        print(f"  -> TTS Sunucu Hatası ({current_model_name}): {e}. Google sunucuları meşgul, 10 saniye bekleniyor...")
                         time.sleep(10)
                         if internal_error_count >= 3:
-                            print(f"  -> Aynı hesapta üst üste 3 kez 500 Hatası alındı. Hesap değiştiriliyor...")
+                            print(f"  -> Üst üste 3 kez Sunucu Hatası alındı. Diğer modele geçiliyor...")
                             internal_error_count = 0
-                            if account_manager.switch_gemini_account():
-                                self.client = self.setup_gemini_client()
+                            self.current_tts_model_idx += 1
+                            if self.current_tts_model_idx >= len(TTS_MODELS):
+                                self.current_tts_model_idx = 0
+                                if account_manager.switch_gemini_account():
+                                    self.client = self.setup_gemini_client()
                             retry_count += 1
                     else:
-                        print(f"  -> TTS Hatası: {e}")
+                        print(f"  -> TTS Bilinmeyen Hata ({current_model_name}): {e}")
                         time.sleep(5)
                     retry_count += 1
                     continue
