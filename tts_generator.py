@@ -225,6 +225,12 @@ Metin:
         retry_count = 0
         internal_error_count = 0
         while retry_count < 1000:
+            import time
+            import os
+            global_start_time = float(os.environ.get("GLOBAL_START_TIME", time.time()))
+            if time.time() - global_start_time > (5 * 3600 + 30 * 60):  # 5 saat 30 dakika
+                print("  -> [ZAMAN AŞIMI] 5.5 saatlik süre sınırı aşıldı! TTS üretimi iptal ediliyor ki sistem kapanabilsin...")
+                return None
             try:
                 # Dinamik ses seçimi ve isim temizliği (Sadece küçük harf ve ilk kelime)
                 raw_voice = override_voice if override_voice else self.config["voice"]

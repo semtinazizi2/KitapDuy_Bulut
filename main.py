@@ -8,6 +8,7 @@ import requests
 import json
 
 GLOBAL_START_TIME = time.time()
+os.environ["GLOBAL_START_TIME"] = str(GLOBAL_START_TIME)
 ORACLE_URL = "http://158.180.24.79:5000"
 TELEMETRY_TOKEN = os.environ.get("TELEMETRY_TOKEN", "super_secret_kitapduy_token")
 
@@ -334,7 +335,9 @@ def process_book(book_source, mode):
             
     return True
 import time
+import os
 GLOBAL_START_TIME = time.time()
+os.environ["GLOBAL_START_TIME"] = str(GLOBAL_START_TIME)
 def main():
     print("====================================================")
     print("   K├âÔÇŞ├é┬░TAPDUY OTOMAT├âÔÇŞ├é┬░K SESL├âÔÇŞ├é┬░ K├âÔÇŞ├é┬░TAP ├âãÆ├àÔÇ£RET├âÔÇŞ├é┬░M S├âÔÇŞ├é┬░STEM├âÔÇŞ├é┬░")
