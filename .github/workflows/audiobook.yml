@@ -31,13 +31,12 @@ jobs:
           pip install -r requirements.txt
 
       - name: Onceki Uretimleri İndir (Hafiza)
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         with:
           path: output_audio/
           key: audio-cache-${{ github.run_id }}
           restore-keys: |
             audio-cache-
-          save-always: true
 
       - name: Firebase Anahtarini Olustur
         env:
@@ -59,3 +58,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
         run: |
           PYTHONUNBUFFERED=1 python main.py
+
+      - name: Uretimleri Kaydet (Hafiza)
+        uses: actions/cache/save@v4
+        if: always()
+        with:
+          path: output_audio/
+          key: audio-cache-${{ github.run_id }}
