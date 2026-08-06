@@ -37,6 +37,7 @@ jobs:
           key: audio-cache-${{ github.run_id }}
           restore-keys: |
             audio-cache-
+          save-always: true
 
       - name: Firebase Anahtarini Olustur
         env:
