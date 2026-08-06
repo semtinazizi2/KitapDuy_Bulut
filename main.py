@@ -13,6 +13,11 @@ ORACLE_URL = "http://158.180.24.79:5000"
 TELEMETRY_TOKEN = os.environ.get("TELEMETRY_TOKEN", "super_secret_kitapduy_token")
 
 import builtins
+import socket
+
+# Tüm ağ (network) istekleri için global bir zaman aşımı (timeout) belirleyelim (300 saniye = 5 dakika).
+# Bu sayede Google sunucuları donup kalırsa sistem sonsuza kadar beklemez, hata fırlatıp diğer hesaba geçer.
+socket.setdefaulttimeout(300)
 
 def remote_print(*args, **kwargs):
     msg = " ".join(str(a) for a in args)
