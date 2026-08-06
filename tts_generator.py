@@ -594,7 +594,7 @@ YANITIN SADECE JSON OLMALIDIR, BAŞKA HİÇBİR AÇIKLAMA YAZMA."""
                 # 3D Binaural etki, EBU R128 Radyo Standardı (loudnorm), Kompresör (acompressor), ve EQ (tiz/bas)
                 cmd = [
                     ffmpeg_bin, "-y", "-i", output_path,
-                    "-af", "aformat=channel_layouts=stereo,adelay=501ms|500ms,apad=pad_dur=1.5,aecho=0.8:0.85:40:0.2,loudnorm=I=-16:TP=-1.5:LRA=11,acompressor,bass=g=2,treble=g=1",
+                    "-af", "aformat=channel_layouts=stereo,adelay=501ms|500ms,apad=pad_dur=1.5,loudnorm=I=-16:TP=-1.5:LRA=11,acompressor,bass=g=2,treble=g=1",
                     "-c:a", "libmp3lame", "-b:a", "192k",
                     tmp_output
                 ]

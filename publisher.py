@@ -393,7 +393,7 @@ SADECE JSON D├ûN:
                     try:
                         ai_meta = json.loads(res_text, strict=False)
                     except Exception as parse_err:
-                        print(f" -> [UYARI] JSON ayr─▒┼şt─▒rma uyar─▒s─▒, regex ile ├ğekiliyor: {parse_err}")
+                        print(f" -> [UYARI] JSON ayrıştırma uyarısı, regex ile çekiliyor: {parse_err}")
                         import re
                         ai_meta = {}
                         title_match = re.search(r'"title"\s*:\s*"([^"]+)"', res_text)
@@ -404,28 +404,28 @@ SADECE JSON D├ûN:
                     if ai_meta and isinstance(ai_meta, dict):
                         metadata["title"] = ai_meta.get("title", title)
                         metadata["author"] = ai_meta.get("author", author)
-                        chosen_cat = ai_meta.get("category", "D├╝nya Edebiyat─▒")
+                        chosen_cat = ai_meta.get("category", "Dünya Edebiyatı")
                         if chosen_cat in valid_categories:
                             metadata["category"] = chosen_cat
                         else:
-                            print(f" -> [UYARI] AI harici kategori ├Ânerdi ({chosen_cat}). Varsay─▒lan kategori (D├╝nya Edebiyat─▒) se├ğildi.")
-                            metadata["category"] = "D├╝nya Edebiyat─▒"
+                            print(f" -> [UYARI] AI harici kategori önerdi ({chosen_cat}). Varsayılan kategori (Dünya Edebiyatı) seçildi.")
+                            metadata["category"] = "Dünya Edebiyatı"
                         
                         ai_desc = ai_meta.get("description", "").strip()
                         if len(ai_desc) > 100:
                             metadata["description"] = ai_desc
                         else:
-                            print(" -> [UYARI] AI a├ğ─▒klamas─▒ ├ğok k─▒sa geldi, zengin edebi b├╝lten ┼şablonu kullan─▒l─▒yor.")
+                            print(" -> [UYARI] AI açıklaması çok kısa geldi, zengin edebi bülten şablonu kullanılıyor.")
                 except Exception as e:
-                    print(f" -> AI K├╝nye olu┼şturma uyar─▒s─▒ (Zengin edebi ┼şablon kullan─▒lacak): {e}")
+                    print(f" -> AI Künye oluşturma uyarısı (Zengin edebi şablon kullanılacak): {e}")
                     
-            print(" -> Yay─▒nlanacak Veri ├ûzeti:")
-            print(f"    * Kitap Ad─▒: {metadata['title']}")
+            print(" -> Yayınlanacak Veri Özeti:")
+            print(f"    * Kitap Adı: {metadata['title']}")
             print(f"    * Yazar:     {metadata['author']}")
             print(f"    * Kategori:  {metadata['category']}")
             print(f"    * MP3 URL:   {metadata['audioUrl']}")
             print(f"    * Kapak URL: {metadata['coverUrl']}")
-            print(f"    * Tan─▒t─▒m:   {metadata['description'][:80]}...")
+            print(f"    * Tanıtım:   {metadata['description'][:80]}...")
             
             # Firebase 'books' koleksiyonuna ekle
             doc_ref = self.db.collection("books").add(metadata)
