@@ -355,20 +355,13 @@ YANITIN SADECE JSON OLMALIDIR, BAŞKA HİÇBİR AÇIKLAMA YAZMA."""
                 return audio_data
             except Exception as e:
                 error_str = str(e).lower()
-                # 404 (Not Found) veya invalid_argument, modelin mevcut olmadığını gösterir.
-                if "404" in error_str or "not found" in error_str or "invalid" in error_str or "not support" in error_str:
-                    print(f"  -> [ATLA] Model '{current_model_name}' desteklenmiyor veya yok. Diğer modele geçiliyor...")
-                    self.current_tts_model_idx += 1
-                    if self.current_tts_model_idx >= len(TTS_MODELS):
-                        print("  -> Bu hesaptaki tüm TTS modelleri bitti. Sonraki hesaba geçiliyor...")
-                        self.current_tts_model_idx = 0
-                        if account_manager.switch_gemini_account():
-                            self.client = self.setup_gemini_client()
-                        retry_count += 1
-                    continue
-                    
-                if "429" in error_str or "quota" in error_str or "exhausted" in error_str or "403" in error_str or "permission_denied" in error_str:
+                
+                # ÖNCELİK 1: Kota/erişim hatası (429, 403) - EN YÜKSEK ÖNCELİK
+                # Bu kontrol 404'ten ÖNCE gelmelidir! Çünkü bazı 429 hataları
+                # "invalid quota" gibi ifadeler içerebilir ve 404 bloğuna girebilir.
+                if "429" in error_str or "quota" in error_str or "exhausted" in error_str or "resource_exhausted" in error_str or "403" in error_str or "permission_denied" in error_str:
                     print(f"  -> [KOTA DOLDU]: Model '{current_model_name}' için limit bitti! Diğer modele geçiliyor... (Deneme {retry_count+1})")
+
                     
                     # API Health Hata Sinyali Gönder
                     try:
@@ -408,6 +401,19 @@ YANITIN SADECE JSON OLMALIDIR, BAŞKA HİÇBİR AÇIKLAMA YAZMA."""
                     if "prohibited_content" in error_str or "candidates is empty" in error_str or "blocked prompt" in error_str or "finish_reason" in error_str or "recitation" in error_str or "valid part" in error_str or "finish_reason is 8" in error_str:
                         print(f"  -> [UYARI] TTS bu metni telif (Recitation/finish_reason: 8) veya içerik engeli nedeniyle seslendirmedi (<SKIP>).")
                         return b""
+                    
+                    # ÖNCELİK 2: Model yok (404) - Spesifik kelimelerle kontrol et
+                    # "invalid" gibi geniş kapsamlı kelimeler KULLANMA - 429 hataları da "invalid quota" içerebilir!
+                    if "404" in error_str or "model not found" in error_str or "is not supported" in error_str or "does not exist" in error_str:
+                        print(f"  -> [ATLA] Model '{current_model_name}' desteklenmiyor veya yok. Diğer modele geçiliyor...")
+                        self.current_tts_model_idx += 1
+                        if self.current_tts_model_idx >= len(TTS_MODELS):
+                            print("  -> Bu hesaptaki tüm TTS modelleri bitti. Sonraki hesaba geçiliyor...")
+                            self.current_tts_model_idx = 0
+                            if account_manager.switch_gemini_account():
+                                self.client = self.setup_gemini_client()
+                            retry_count += 1
+                        continue
                         
                     if "500" in error_str or "internal" in error_str or "503" in error_str or "unavailable" in error_str:
                         internal_error_count += 1
