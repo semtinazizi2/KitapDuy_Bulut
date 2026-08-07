@@ -306,13 +306,24 @@ Format: {{"hatali_kelime": "okunusu_garanti_esanlamlisi"}}
 Eğer okuma kusursuzsa SADECE boş JSON dön: {{}}
 YANITIN SADECE JSON OLMALIDIR, BAŞKA HİÇBİR AÇIKLAMA YAZMA."""
 
-                        qa_response = self.client.models.generate_content(
-                            model="gemini-3.5-flash-lite",
-                            contents=[
-                                types.Part.from_bytes(data=wav_io.getvalue(), mime_type="audio/wav"),
-                                qa_prompt
-                            ]
-                        )
+                        # Diksiyon QA için model rotasyonu - Her ikisi de 500 RPD/gün!
+                        QA_MODELS = ["gemini-3.5-flash-lite", "gemini-3.1-flash-lite"]
+                        qa_response = None
+                        for qa_model in QA_MODELS:
+                            try:
+                                qa_response = self.client.models.generate_content(
+                                    model=qa_model,
+                                    contents=[
+                                        types.Part.from_bytes(data=wav_io.getvalue(), mime_type="audio/wav"),
+                                        qa_prompt
+                                    ]
+                                )
+                                break  # Başarılıysa döngüden çık
+                            except Exception as qa_model_err:
+                                if "429" in str(qa_model_err).lower() or "quota" in str(qa_model_err).lower():
+                                    print(f"  -> [QA] {qa_model} kotası doldu, yedek modele geçiliyor...")
+                                    continue
+                                break  # Kota dışı hata - döngüyü kır
                         
                         qa_result = qa_response.text.strip()
                         if qa_result.startswith("```json"):
