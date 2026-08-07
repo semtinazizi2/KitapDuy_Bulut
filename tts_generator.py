@@ -229,10 +229,9 @@ Metin:
             self.current_tts_model_idx = 0
             
         TTS_MODELS = [
-            "gemini-3.1-flash-tts-preview",  # En son, en kaliteli (şu an kullandığımız)
-            "gemini-2.5-flash-tts",           # Hızlı, stabil versiyon ✅
-            "gemini-2.5-flash-tts-preview",   # Hızlı preview versiyonu ✅
-            "gemini-2.5-pro-tts",             # En kaliteli, yüksek-kalite sesi ✅
+            "gemini-3.1-flash-tts-preview",   # En son model (birincil)
+            "gemini-2.5-flash-preview-tts",    # ✅ Doğru isim! (gemini-2.5-flash-tts değil)
+            "gemini-2.5-pro-preview-tts",      # ✅ Doğru isim! (gemini-2.5-pro-tts değil)
         ]
 
         while retry_count < 1000:
