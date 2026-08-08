@@ -393,11 +393,14 @@ SADECE JSON D├ûN:
                     try:
                         ai_meta = json.loads(res_text, strict=False)
                     except Exception as parse_err:
-                        print(f" -> [UYARI] JSON ayrıştırma uyarısı, regex ile çekiliyor: {parse_err}")
                         import re
                         ai_meta = {}
                         title_match = re.search(r'"title"\s*:\s*"([^"]+)"', res_text)
                         if title_match: ai_meta["title"] = title_match.group(1)
+                        
+                        cat_match = re.search(r'"category"\s*:\s*"([^"]+)"', res_text)
+                        if cat_match: ai_meta["category"] = cat_match.group(1)
+                        
                         desc_match = re.search(r'"description"\s*:\s*"([^"]+)"', res_text, re.DOTALL)
                         if desc_match: ai_meta["description"] = desc_match.group(1).replace('\\n', '\n').replace('\\"', '"')
                         
