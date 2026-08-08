@@ -178,10 +178,10 @@ def process_book(book_source, mode="full"):
         db = firestore.client()
         existing = db.collection("books").where("title", "==", book_title).limit(1).get()
         if len(existing) > 0:
-            print(f"\n[B─░LG─░] '{book_title}' zaten KitapDuy uygulamas─▒nda MECUT! Bu kitap atlan─▒p yenisine ge├ğilecek...")
+            print(f"\n[BİLGİ] '{book_title}' zaten KitapDuy uygulamasında MECUT! Bu kitap atlanıp yenisine geçilecek...")
             with open("completed_books.txt", "a", encoding="utf-8") as f:
-                f.write(f"{book_source}\n")
-            return True # Otonom d├Âng├╝ hata san─▒p 5 dk beklemesin, hemen yenisine ge├ğsin
+                f.write(f"{book_source_id}\n")
+            return True # Otonom döngü hata sanıp 5 dk beklemesin, hemen yenisine geçsin
     except Exception as e:
         print(f"[UYARI] Uygulama veritaban─▒ kontrol├╝ yap─▒lamad─▒: {e}")
         
@@ -213,7 +213,7 @@ def process_book(book_source, mode="full"):
         # UI'a Anında Bildir
         try:
             voice_name = tts.config.get("voice", "Bilinmiyor")
-            update_telemetry(book_source, book_title, i+1, total_paragraphs, voice_name)
+            update_telemetry(book_source_id, book_title, i+1, total_paragraphs, voice_name)
         except:
             pass
         
@@ -280,7 +280,10 @@ def process_book(book_source, mode="full"):
 
         # Telemetry update
         voice_name = tts.config.get("voice", "Bilinmiyor")
-        update_telemetry(book_source, book_title, i+1, total_paragraphs, voice_name, latest_audio_url=r2_preview_url)
+        try:
+            update_telemetry(book_source_id, book_title, i+1, total_paragraphs, voice_name, latest_audio_url=r2_preview_url)
+        except:
+            pass
         
         # 4. Kalite Kontrol (Opsiyonel)
         if ENABLE_QA and final_audio_path:
@@ -319,7 +322,7 @@ def process_book(book_source, mode="full"):
                 r2_audio_url = pub.upload_to_r2(mp3_path, mp3_filename)
                 
                 # 3. Kapak olu┼ştur ve R2'ye y├╝kle (Kapak aramas─▒ orijinal ─░ngilizce isimle yap─▒l─▒r ki API'ler kapa─ş─▒ bulabilsin)
-                r2_cover_url = pub.generate_and_upload_cover(original_book_title, book_author, book_output_dir, safe_title)
+                r2_cover_url = pub.generate_and_upload_cover(book_title, book_author, book_output_dir, safe_title)
                 
                 # 4. Firebase'e kaydet
                 if r2_audio_url:
@@ -343,13 +346,12 @@ def process_book(book_source, mode="full"):
                     except Exception as clean_err:
                         print(f"[UYARI] Dosyalar silinirken hata olu┼ştu: {clean_err}")
                     
-                    # Otonom mod i├ğin kitap 100% bitti─şinde ID'sini kaydedelim ki bir daha okumas─▒n
-                    if str(book_source).isdigit():
-                        try:
-                            with open("completed_books.txt", "a") as f:
-                                f.write(str(book_source) + "\n")
-                        except Exception:
-                            pass
+                    # Otonom mod için kitap 100% bittiğinde ID'sini kaydedelim ki bir daha okumasın
+                    try:
+                        with open("completed_books.txt", "a", encoding="utf-8") as f:
+                            f.write(str(book_source_id) + "\n")
+                    except Exception:
+                        pass
                         
         except Exception as e:
             print(f"[UYARI] Otomatik yay├âÔÇŞ├é┬▒nlay├âÔÇŞ├é┬▒c├âÔÇŞ├é┬▒ ├âãÆ├é┬ğal├âÔÇŞ├é┬▒├âÔÇĞ├à┬©t├âÔÇŞ├é┬▒r├âÔÇŞ├é┬▒l├âÔÇŞ├é┬▒rken bir hata olu├âÔÇĞ├à┬©tu: {e}")
@@ -425,7 +427,7 @@ def main():
             import gc
             gc.collect()
     # 2. Aşama: Otonom Fabrika Döngüsü (Baştan auto girildiyse veya manuel bittiyse buraya düşer)
-    if book_source_id.lower() == "auto":
+    if book_source.lower() == "auto":
         print("\n[OTONOM FABRİKA] Sistem sonsuz döngü modunda başlatıldı!")
         print("[OTONOM FABRİKA] Kendi kendine kitap arayıp yayınlamaya devam edecek...")
         from book_fetcher import BookFetcher
