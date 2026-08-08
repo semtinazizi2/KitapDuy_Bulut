@@ -4,7 +4,7 @@ google-cloud-texttospeech
 google-cloud-speech
 requests
 python-dotenv
-
+beautifulsoup4
 pydub
 boto3
 firebase-admin
