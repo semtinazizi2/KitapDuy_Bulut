@@ -69,38 +69,54 @@ def main():
     if not mode:
         mode = input("Sadece k├âÔÇŞ├é┬▒sa bir 'Test' (├âÔÇŞ├é┬░lk 3 paragraf) mi yapmak istersiniz, yoksa kitab├âÔÇŞ├é┬▒n 'Tamam├âÔÇŞ├é┬▒n├âÔÇŞ├é┬▒' m├âÔÇŞ├é┬▒? (Test/Tamam├âÔÇŞ├é┬▒): ").strip().lower()
     
-def process_book(book_source, mode):
+def process_book(book_source, mode="full"):
     import os
+    import re
     ENABLE_QA = False
-    print(f"\n================ YEN─░ K─░TAP ({book_source}) BA┼ŞLIYOR ====================")
-    print("\nAd├âÔÇŞ├é┬▒m 1: Mod├âãÆ├é┬╝ller ba├âÔÇĞ├à┬©lat├âÔÇŞ├é┬▒l├âÔÇŞ├é┬▒yor (Bu i├âÔÇĞ├à┬©lem birka├âãÆ├é┬ğ saniye s├âãÆ├é┬╝rebilir)...")
+    
+    # book_source, sözlük ise (Türkçe kitap) içinden bilgileri çıkar
+    is_turkish = False
+    if isinstance(book_source, dict):
+        book_source_id = book_source.get("id", "tr_unknown")
+        print(f"\n================ YENİ KİTAP ({book_source_id}) BAŞLIYOR ====================")
+        is_turkish = book_source.get("is_turkish", False)
+    else:
+        book_source_id = str(book_source)
+        print(f"\n================ YENİ KİTAP ({book_source_id}) BAŞLIYOR ====================")
+        
+    print("\nAdım 1: Modüller başlatılıyor (Bu işlem birkaç saniye sürebilir)...")
     try:
         fetcher = BookFetcher()
         
         raw_text = ""
-        if book_source.startswith("http://") or book_source.startswith("https://"):
-            print(f"\nAd├âÔÇŞ├é┬▒m 2: Web sitesinden kitap ├âãÆ├é┬ğekiliyor ({book_source})...")
-            raw_text = fetcher.download_from_url(book_source)
-            # URL'den sabit ve okunabilir klas├âãÆ├é┬Âr ad├âÔÇŞ├é┬▒ ├âãÆ├é┬╝ret (hash de├âÔÇŞ├à┬©il, URL dosya ad├âÔÇŞ├é┬▒)
+        if isinstance(book_source, dict):
+            print(f"\nAdım 2: Türkçe kitap yükleniyor ({book_source_id})...")
+            raw_text = book_source.get("text", "")
+            fetcher.book_title = book_source.get("title", "")
+            fetcher.book_author = book_source.get("authors", [{"name": ""}])[0].get("name", "")
+            book_folder_name = book_source_id
+        elif book_source_id.startswith("http://") or book_source_id.startswith("https://"):
+            print(f"\nAdım 2: Web sitesinden kitap çekiliyor ({book_source_id})...")
+            raw_text = fetcher.download_from_url(book_source_id)
             from urllib.parse import urlparse
-            url_path = urlparse(book_source).path
-            url_filename = _os.path.basename(url_path)          # ├âãÆ├é┬Ârn: 0100021h.html
-            url_filename = _os.path.splitext(url_filename)[0]   # ├âãÆ├é┬Ârn: 0100021h
-            book_folder_name = "url_" + url_filename            # ├âãÆ├é┬Ârn: url_0100021h
-        elif book_source.endswith(".txt") and os.path.exists(book_source):
-            print(f"\nAd├âÔÇŞ├é┬▒m 2: Yerel dosya okunuyor ({book_source})...")
-            with open(book_source, "r", encoding="utf-8") as f:
+            url_path = urlparse(book_source_id).path
+            url_filename = os.path.basename(url_path)          
+            url_filename = os.path.splitext(url_filename)[0]   
+            book_folder_name = "url_" + url_filename            
+        elif book_source_id.endswith(".txt") and os.path.exists(book_source_id):
+            print(f"\nAdım 2: Yerel dosya okunuyor ({book_source_id})...")
+            with open(book_source_id, "r", encoding="utf-8") as f:
                 raw_text = f.read()
-            book_folder_name = book_source.replace(".txt", "")
+            book_folder_name = book_source_id.replace(".txt", "")
         else:
-            print(f"\nAd├âÔÇŞ├é┬▒m 2: Kitap indiriliyor (Project Gutenberg ID: {book_source})...")
-            raw_text = fetcher.download_gutenberg_book(book_source)
-            book_folder_name = book_source
+            print(f"\nAdım 2: Kitap indiriliyor (Project Gutenberg ID: {book_source_id})...")
+            raw_text = fetcher.download_gutenberg_book(book_source_id)
+            book_folder_name = book_source_id
             
         if not raw_text:
-            print("HATA: Kitap metni al├âÔÇŞ├é┬▒namad├âÔÇŞ├é┬▒. Dosya ad├âÔÇŞ├é┬▒n├âÔÇŞ├é┬▒, URL'yi veya Gutenberg ID'sini kontrol edin.")
-            return
-        # Her kitap i├âãÆ├é┬ğin ayr├âÔÇŞ├é┬▒ bir klas├âãÆ├é┬Âr olu├âÔÇĞ├à┬©tur ve haf├âÔÇŞ├é┬▒zay├âÔÇŞ├é┬▒ oraya kaydet
+            print("HATA: Kitap metni alınamadı. Dosya adını, URL'yi veya Gutenberg ID'sini kontrol edin.")
+            return False
+        # Her kitap için ayrı bir klasör oluştur ve hafızayı oraya kaydet
         book_output_dir = os.path.join(os.getenv("OUTPUT_DIR", "output_audio"), book_folder_name)
         os.makedirs(book_output_dir, exist_ok=True)
         
@@ -115,34 +131,29 @@ def process_book(book_source, mode):
         qa = QAChecker(is_enabled=ENABLE_QA)
     except Exception as e:
         print(f"Mod├âãÆ├é┬╝l ba├âÔÇĞ├à┬©latma hatas├âÔÇŞ├é┬▒: {e}\nL├âãÆ├é┬╝tfen .env dosyan├âÔÇŞ├é┬▒z├âÔÇŞ├é┬▒ kontrol edin.")
-        return
-    # Kitap bilgileri zaten fetcher taraf─▒ndan al─▒nd─▒ (ba┼şar─▒s─▒z olsa da "Bilinmeyen" ile devam edilir)
-    # ─░kinci kez API ├ğa─ş─▒r─▒p hesaplar─▒ yakmamak i├ğin tekrar sorulmaz!
+        return False
+    
     if hasattr(fetcher, 'book_title') and fetcher.book_title:
-        original_book_title = fetcher.book_title
         book_title = fetcher.book_title
         book_author = getattr(fetcher, 'book_author', 'Bilinmeyen Yazar')
     else:
-        # Fallback: Kitap ID'sinden isim t├╝ret
-        original_book_title = f"Kitap {book_source}"
-        book_title = original_book_title
-        book_author = "Bilinmeyen Yazar"
+        print("[UYARI] Yazar veya kitap adı bulunamadı. Lütfen manuel girin veya dosyayı kontrol edin.")
+        return False
         
-    print(f"[B├âÔÇŞ├é┬░LG├âÔÇŞ├é┬░] Eser Tespit Edildi: '{book_title}' - Yazar: {book_author}")
+    metadata_path = os.path.join(book_output_dir, "book_metadata.json")
     
-    import json
-    metadata_path = os.path.join(book_output_dir, "metadata.json")
-    
-    # E─şer daha ├Ânce T├╝rk├ğe ba┼şl─▒k ├ğevrilip kaydedildiyse oradan oku, yoksa ├ğevir
     if os.path.exists(metadata_path):
-        try:
-            with open(metadata_path, "r", encoding="utf-8") as f:
-                saved_meta = json.load(f)
-                book_title = saved_meta.get("title", book_title)
-        except Exception:
-            pass
+        with open(metadata_path, "r", encoding="utf-8") as f:
+            metadata = json.load(f)
+            book_title = metadata.get("title", book_title)
+            print(f"[BİLGİ] Kitap adı daha önce çevrilmiş hafızadan yüklendi: {book_title}")
+    elif is_turkish:
+        print("[BİLGİ] Türkçe kitap olduğu için başlık çevirisi atlanıyor.")
+        translated_title = book_title
+        with open(metadata_path, "w", encoding="utf-8") as f:
+            json.dump({"title": translated_title, "author": book_author}, f, ensure_ascii=False, indent=2)
     else:
-        print("[B─░LG─░] Kitap ad─▒ T├╝rk├ğeye ├ğevriliyor...")
+        print("[BİLGİ] Kitap adı Türkçeye çevriliyor...")
         try:
             translated_title = fetcher.translate_to_turkish(f"The title of the book is '{book_title}'. Translate ONLY this title to Turkish. If it is already Turkish or a proper name that shouldn't be translated, keep it as is. Do not add any punctuation or extra text.", previous_context="")
             if len(translated_title) > 80 or translated_title.strip() == "":
@@ -152,8 +163,8 @@ def process_book(book_source, mode):
             with open(metadata_path, "w", encoding="utf-8") as f:
                 json.dump({"title": book_title, "author": book_author}, f, ensure_ascii=False, indent=2)
         except Exception as e:
-            print(f"[UYARI] Kitap ad─▒ ├ğevrilemedi: {e}")
-    fetcher.check_and_warn_copyright(raw_text, book_title, book_author, source=book_source)
+            print(f"[UYARI] Kitap adı çevrilemedi: {e}")
+    fetcher.check_and_warn_copyright(raw_text, book_title, book_author, source=book_source_id)
     
     # --- K─░TAPDUY UYGULAMASI VER─░TABANI KONTROL├£ ---
     # E─şer kitap zaten uygulamada varsa (─░sim e┼şle┼şiyorsa) bo┼şuna ├╝retmemek i├ğin atlar─▒z
@@ -215,28 +226,37 @@ def process_book(book_source, mode):
             print("------------------\n")
             continue
         
-        # 1. ├âãÆ├óÔé¼┬íeviri
-        print("├âãÆ├óÔé¼┬íevirisi yap├âÔÇŞ├é┬▒l├âÔÇŞ├é┬▒yor...")
-        
-        # Ge├âãÆ├é┬ğmi├âÔÇĞ├à┬© ba├âÔÇŞ├à┬©lam├âÔÇŞ├é┬▒ d├âãÆ├é┬╝z metne ├âãÆ├é┬ğevir (E├âÔÇŞ├à┬©er varsa)
-        previous_context_str = "\n\n".join(sliding_window_buffer)
-        
-        try:
-            # Kitapduy Tan├âÔÇŞ├é┬▒t├âÔÇŞ├é┬▒m Anonsu (Sadece 1. b├âãÆ├é┬Âl├âãÆ├é┬╝m├âãÆ├é┬╝n ba├âÔÇĞ├à┬©├âÔÇŞ├é┬▒na eklenir)
+        # 1. Çeviri
+        if is_turkish:
+            print("Metin Türkçe olduğu için çevirisi atlanıyor...")
+            turkish_text = p
             if i == 0:
-                intro = f"Eserimiz: {book_title}. Yazar: {book_author}. Arkan─▒za yaslan─▒n ve hikayenin tad─▒n─▒ ├ğ─▒kar─▒n. "
-            else:
-                intro = ""
-            turkish_text = fetcher.translate_to_turkish(p, previous_context=previous_context_str)
-            
-            if i == 0:
+                intro = f"Eserimiz: {book_title}. Yazar: {book_author}. Arkanıza yaslanın ve hikayenin tadını çıkarın. "
                 turkish_text = intro + turkish_text
-                
             print(f"TR: {turkish_text[:60]}...")
-        except Exception as e:
-            print("\n!!! D├âÔÇŞ├é┬░KKAT: T├âãÆ├é┬╝m API hesaplar├âÔÇŞ├é┬▒n├âÔÇŞ├é┬▒z├âÔÇŞ├é┬▒n kotas├âÔÇŞ├é┬▒ tamamen doldu !!!")
-            print("L├âãÆ├é┬╝tfen yar├âÔÇŞ├é┬▒na kadar bekleyin. Yar├âÔÇŞ├é┬▒n sistemi tekrar ba├âÔÇĞ├à┬©latt├âÔÇŞ├é┬▒├âÔÇŞ├à┬©├âÔÇŞ├é┬▒n├âÔÇŞ├é┬▒zda otomatik olarak buradan devam edecektir.")
-            break
+            previous_context_str = "\n\n".join(sliding_window_buffer)
+        else:
+            print("Çevirisi yapılıyor...")
+            
+            # Geçmiş bağlamı düz metne çevir (Eğer varsa)
+            previous_context_str = "\n\n".join(sliding_window_buffer)
+            
+            try:
+                # Kitapduy Tanıtım Anonsu (Sadece 1. bölümün başına eklenir)
+                if i == 0:
+                    intro = f"Eserimiz: {book_title}. Yazar: {book_author}. Arkanıza yaslanın ve hikayenin tadını çıkarın. "
+                else:
+                    intro = ""
+                turkish_text = fetcher.translate_to_turkish(p, previous_context=previous_context_str)
+                
+                if i == 0:
+                    turkish_text = intro + turkish_text
+                    
+                print(f"TR: {turkish_text[:60]}...")
+            except Exception as e:
+                print("\n!!! DİKKAT: Tüm API hesaplarınızın kotası tamamen doldu !!!")
+                print("Lütfen yarına kadar bekleyin. Yarın sistemi tekrar başlattığınızda otomatik olarak buradan devam edecektir.")
+                break
             
         # 2. Y├âãÆ├é┬Ânetmen Senaryosu (AI Studio Settings)
         print("Y├âãÆ├é┬Ânetmen Senaryosu (Scene/Context) olu├âÔÇĞ├à┬©turuluyor...")
@@ -404,13 +424,15 @@ def main():
             # RAM ┼Şi┼şmesini (Memory Leak / OOM) ├ûnlemek ─░├ğin ├ç├Âp Toplay─▒c─▒y─▒ ├çal─▒┼şt─▒r
             import gc
             gc.collect()
-    # 2. A┼şama: Otonom Fabrika D├Âng├╝s├╝ (Ba┼ştan auto girildiyse veya manuel bittiyse buraya d├╝┼şer)
-    if book_source.lower() == "auto":
-        print("\n[OTONOM FABR─░KA] Sistem sonsuz d├Âng├╝ modunda ba┼şlat─▒ld─▒!")
-        print("[OTONOM FABR─░KA] Kendi kendine kitap aray─▒p yay─▒nlamaya devam edecek...")
+    # 2. Aşama: Otonom Fabrika Döngüsü (Baştan auto girildiyse veya manuel bittiyse buraya düşer)
+    if book_source_id.lower() == "auto":
+        print("\n[OTONOM FABRİKA] Sistem sonsuz döngü modunda başlatıldı!")
+        print("[OTONOM FABRİKA] Kendi kendine kitap arayıp yayınlamaya devam edecek...")
         from book_fetcher import BookFetcher
         fetcher_instance = BookFetcher()
         current_id = None
+        last_source = "turkish" # Sırayla gitmesi için başlangıç durumu
+        
         while True:
             import time
             if current_id is None:
@@ -424,9 +446,20 @@ def main():
                 except Exception as e:
                     print(f"[UYARI] Kuyruk kontrol edilemedi: {e}")
                     
-                # 2. Kuyruk boşsa rastgele devam et
+                # 2. Kuyruk boşsa rastgele sırayla devam et (1 Gutenberg, 1 Türkçe)
                 if not current_id:
-                    current_id = fetcher_instance.get_random_gutenberg_id()
+                    if last_source == "turkish":
+                        current_id = fetcher_instance.get_random_gutenberg_id()
+                        last_source = "gutenberg"
+                    else:
+                        current_id = fetcher_instance.get_random_turkish_book()
+                        if current_id is None:
+                            # Türkçe kalmadıysa, hata vermemek için Gutenberg ile devam et
+                            print("[OTONOM BİLGİ] Okunmamış Türkçe kitap kalmadığı için Gutenberg'e dönülüyor...")
+                            current_id = fetcher_instance.get_random_gutenberg_id()
+                            last_source = "gutenberg"
+                        else:
+                            last_source = "turkish"
                 
             success = process_book(current_id, mode)
             

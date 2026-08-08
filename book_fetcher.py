@@ -1,34 +1,128 @@
 import requests
 import re
 import warnings
-warnings.filterwarnings("ignore")  # FutureWarning gizle
-import google.generativeai as genai
+import json
+import os
+import random
+from bs4 import BeautifulSoup
 from account_manager import account_manager
 import time
+try:
+    from google import genai
+    from google.genai import types
+except ImportError:
+    pass
 
 class BookFetcher:
     def __init__(self):
-        self.setup_gemini()
+        self.client = None
+        self._init_gemini()
+        # Fallback for old code if it accesses self.model directly
+        if self.client:
+            self.model = self.client.models
         
-    def setup_gemini(self):
+    def _init_gemini(self):
         key = account_manager.get_current_gemini_key()
         if key:
-            genai.configure(api_key=key)
-            self.model = genai.GenerativeModel('gemini-3.5-flash-lite')
-        else:
-            self.model = None
+            self.client = genai.Client(api_key=key)
+
+    def get_random_turkish_book(self):
+        """turkish_classics.json dosyasından okunmamış rastgele bir Türkçe kitap seçer ve okur."""
+        print("[OTONOM] Yeni bir Türkçe kitap aranıyor...")
+        
+        json_path = "turkish_classics.json"
+        if not os.path.exists(json_path):
+            print("HATA: turkish_classics.json bulunamadı!")
+            return None
+            
+        with open(json_path, "r", encoding="utf-8") as f:
+            try:
+                books = json.load(f)
+            except Exception as e:
+                print(f"HATA: {json_path} okunamadı: {e}")
+                return None
+                
+        completed_file = "completed_books.txt"
+        completed_ids = set()
+        if os.path.exists(completed_file):
+            with open(completed_file, "r", encoding="utf-8") as f:
+                completed_ids = set(line.strip() for line in f)
+                
+        # Filtrele: Sadece okunmamışları bul
+        unread_books = [b for b in books if str(b.get("id")) not in completed_ids]
+        
+        if not unread_books:
+            print("UYARI: Bütün Türkçe klasikler okunmuş! Lütfen turkish_classics.json dosyasına yeni kitaplar ekleyin.")
+            return None
+            
+        chosen_book = random.choice(unread_books)
+        book_id = str(chosen_book["id"])
+        
+        title = chosen_book.get("title", "Bilinmeyen Türkçe Kitap")
+        author = chosen_book.get("author", "Bilinmeyen Yazar")
+        
+        # Metni al (dosyadan veya URL'den)
+        text_content = ""
+        try:
+            if "file_path" in chosen_book:
+                with open(chosen_book["file_path"], "r", encoding="utf-8") as f:
+                    text_content = f.read()
+            elif "url" in chosen_book:
+                url = chosen_book["url"]
+                print(f"URL'den metin indiriliyor: {url}")
+                resp = requests.get(url, timeout=10)
+                resp.raise_for_status()
+                text_content = resp.text
+            else:
+                print(f"HATA: {book_id} için file_path veya url belirtilmemiş.")
+                return None
+        except Exception as e:
+            print(f"HATA: Metin alınırken sorun oluştu: {e}")
+            return None
+
+        # Gutenberg uyumlu veri yapısı döndür
+        print(f"[BAŞARILI] Türkçe Klasik Seçildi: {title} - {author}")
+        return {
+            "id": book_id,
+            "title": title,
+            "authors": [{"name": author}],
+            "text": text_content,
+            "is_turkish": True  # Bunun çevrilmemesi gerektiğini sisteme bildirmek için özel bayrak
+        }
             
     def _generate(self, prompt, safety_off=False):
-        """Eski google.generativeai SDK ile metin üretir."""
+        """google-genai SDK ile metin üretir."""
         safety_settings = None
         if safety_off:
             safety_settings = [
-                {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"},
-                {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"},
-                {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE"},
-                {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE"},
+                types.SafetySetting(category="HARM_CATEGORY_HATE_SPEECH", threshold="BLOCK_NONE"),
+                types.SafetySetting(category="HARM_CATEGORY_HARASSMENT", threshold="BLOCK_NONE"),
+                types.SafetySetting(category="HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold="BLOCK_NONE"),
+                types.SafetySetting(category="HARM_CATEGORY_DANGEROUS_CONTENT", threshold="BLOCK_NONE"),
             ]
-        return self.model.generate_content(prompt, safety_settings=safety_settings)
+        
+        # Rotasyon mekanizması ile (qa_checker ve tts_generator'da olduğu gibi)
+        # burada da 3.1-flash-lite kullanıyoruz.
+        config = types.GenerateContentConfig()
+        if safety_settings:
+            config.safety_settings = safety_settings
+            
+        try:
+            response = self.model.generate_content(
+                model="gemini-3.1-flash-lite",
+                contents=prompt,
+                config=config
+            )
+            return response
+        except Exception as e:
+            if "429" in str(e) or "quota" in str(e).lower():
+                print("  -> [ÇEVİRİ UYARI] Kota doldu, yedek modele geçiliyor...")
+                return self.model.generate_content(
+                    model="gemini-3.5-flash-lite",
+                    contents=prompt,
+                    config=config
+                )
+            raise e
             
     def download_from_url(self, url):
         """Verilen herhangi bir URL'den sayfanın metin kısmını (HTML'den arındırarak) çeker."""

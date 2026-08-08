@@ -1,0 +1,14 @@
+[
+    {
+        "id": "tr_local_001",
+        "title": "Kürk Mantolu Madonna (Özet Örnek)",
+        "author": "Sabahattin Ali",
+        "file_path": "turkish_books/kurk_mantolu_madonna_ornek.txt"
+    },
+    {
+        "id": "tr_local_002",
+        "title": "Kaşağı (Özet Örnek)",
+        "author": "Ömer Seyfettin",
+        "file_path": "turkish_books/kasagi_ornek.txt"
+    }
+]
